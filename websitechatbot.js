@@ -547,8 +547,7 @@
             poweredBy: {
                 text: 'Powered by n8n',
                 link: 'https://n8n.partnerlinks.io/fabimarkl'
-            },
-            launcherLogo: '' // Added for launcher logo
+            }
         },
         style: {
             primaryColor: '#10b981', // Green
@@ -650,10 +649,10 @@
     chatWindow.innerHTML = welcomeScreenHTML + chatInterfaceHTML;
     
     // Create toggle button
-    const launcherLogoUrl = settings.branding.launcherLogo ? settings.branding.launcherLogo : settings.branding.logo;
+    const launchButton = document.createElement('button');
     launchButton.className = `chat-launcher ${settings.style.position === 'left' ? 'left-side' : 'right-side'}`;
     launchButton.innerHTML = `
-        <img src="${launcherLogoUrl}" alt="${settings.branding.name} Launcher Logo" style="width: 32px; height: 32px; object-fit: contain; background: white; border-radius: var(--chat-radius-full); padding: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.07);">
+        <img src="${settings.branding.logo}" alt="${settings.branding.name} Logo" style="width: 32px; height: 32px; object-fit: contain; background: white; border-radius: var(--chat-radius-full); padding: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.07);">
         <span class="chat-launcher-text">Speak with team ${settings.branding.name}</span>`;
     
     // Add elements to DOM
