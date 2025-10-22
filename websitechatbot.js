@@ -81,9 +81,9 @@
         }
 
         .chat-assist-widget .chat-header-logo {
-            height: 80%;
-            max-height: 60px;
-            width: auto;
+            height: 90%;
+            max-height: 68px;
+            width: 95%;
             max-width: 95%;
             object-fit: contain;
             display: block;
@@ -91,7 +91,7 @@
             background: none;
             border-radius: 0;
             box-shadow: none;
-            padding: 0;
+            padding: 0 10px;
         }
 
         .chat-assist-widget .chat-header-title {
