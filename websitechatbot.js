@@ -69,15 +69,15 @@
             padding: 16px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
             background: linear-gradient(135deg, var(--chat-color-primary) 0%, var(--chat-color-secondary) 100%);
             color: white;
             position: relative;
         }
 
         .chat-assist-widget .chat-header-logo {
-            width: 32px;
-            height: 32px;
+            width: 40px;
+            height: 40px;
             border-radius: var(--chat-radius-sm);
             object-fit: contain;
             background: white;
@@ -596,8 +596,7 @@
     // Create welcome screen with header
     const welcomeScreenHTML = `
         <div class="chat-header">
-            <img class="chat-header-logo" src="${settings.branding.logo}" alt="${settings.branding.name}">
-            <span class="chat-header-title">${settings.branding.name}</span>
+            <img class="chat-header-logo" src="https://postimg.cc/wtv4wtLM" alt="Drumhierny Logo" style="width: 40px; height: 40px; object-fit: contain;">
             <button class="chat-close-btn">×</button>
         </div>
         <div class="chat-welcome">
