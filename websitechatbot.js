@@ -605,19 +605,11 @@
     chatWindow.className = `chat-window ${settings.style.position === 'left' ? 'left-side' : 'right-side'}`;
     
     // Create welcome screen with header
-    const headerLogoUrl = settings.branding.logo || '';
-    const launcherLogoUrl = settings.branding.launcherLogo || settings.branding.logo || '';
+    const headerLogoUrl = 'https://i.postimg.cc/F13ckn4p/Whats-App-Image-2025-10-22-at-13-42-16-ba55f33b-removebg-preview.png';
+    const launcherLogoUrl = 'https://i.postimg.cc/4Y4QtKpH/laucnherlogo.jpg';
     
-    if (!headerLogoUrl) {
-        console.warn('No header logo set in ChatWidgetConfig.branding.logo');
-    } else {
-        console.log('Header logo URL being used:', headerLogoUrl);
-    }
-    if (!launcherLogoUrl) {
-        console.warn('No launcher logo set.');
-    } else {
-        console.log('Launcher logo URL being used:', launcherLogoUrl);
-    }
+    console.log('Header logo URL being used:', headerLogoUrl);
+    console.log('Launcher logo URL being used:', launcherLogoUrl);
 
     const welcomeScreenHTML = `
         <div class="chat-header">
