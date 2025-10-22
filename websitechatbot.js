@@ -66,22 +66,32 @@
         }
 
         .chat-assist-widget .chat-header {
-            padding: 16px;
+            position: relative;
+            padding: 0 24px 0 0;
             display: flex;
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, var(--chat-color-primary) 0%, var(--chat-color-secondary) 100%);
             color: white;
-            position: relative;
+            height: 72px;
+            min-height: 72px;
+            border-top-left-radius: var(--chat-radius-lg);
+            border-top-right-radius: var(--chat-radius-lg);
+            overflow: hidden;
         }
 
         .chat-assist-widget .chat-header-logo {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--chat-radius-sm);
+            height: 80%;
+            max-height: 60px;
+            width: auto;
+            max-width: 95%;
             object-fit: contain;
-            background: white;
-            padding: 4px;
+            display: block;
+            margin: 0 auto;
+            background: none;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 0;
         }
 
         .chat-assist-widget .chat-header-title {
@@ -92,7 +102,7 @@
 
         .chat-assist-widget .chat-close-btn {
             position: absolute;
-            right: 16px;
+            right: 12px;
             top: 50%;
             transform: translateY(-50%);
             background: rgba(255, 255, 255, 0.2);
@@ -104,10 +114,11 @@
             align-items: center;
             justify-content: center;
             transition: var(--chat-transition);
-            font-size: 18px;
+            font-size: 20px;
             border-radius: var(--chat-radius-full);
             width: 28px;
             height: 28px;
+            z-index: 5;
         }
 
         .chat-assist-widget .chat-close-btn:hover {
@@ -596,7 +607,7 @@
     // Create welcome screen with header
     const welcomeScreenHTML = `
         <div class="chat-header">
-            <img class="chat-header-logo" src="${settings.branding.logo}" alt="${settings.branding.name} Logo" style="width: 40px; height: 40px; object-fit: contain; background: white; border-radius: var(--chat-radius-sm); padding: 4px;">
+            <img class="chat-header-logo" src="${settings.branding.logo}" alt="${settings.branding.name} Logo">
             <button class="chat-close-btn">×</button>
         </div>
         <div class="chat-welcome">
