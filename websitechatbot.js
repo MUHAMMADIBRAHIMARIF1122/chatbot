@@ -547,7 +547,8 @@
             poweredBy: {
                 text: 'Powered by n8n',
                 link: 'https://n8n.partnerlinks.io/fabimarkl'
-            }
+            },
+            launcherLogo: '' // Added for launcher logo
         },
         style: {
             primaryColor: '#10b981', // Green
@@ -596,7 +597,7 @@
     // Create welcome screen with header
     const welcomeScreenHTML = `
         <div class="chat-header">
-            <img class="chat-header-logo" src="https://postimg.cc/wtv4wtLM" alt="Drumhierny Logo" style="width: 40px; height: 40px; object-fit: contain;">
+            <img class="chat-header-logo" src="${settings.branding.logo}" alt="${settings.branding.name} Logo" style="width: 40px; height: 40px; object-fit: contain; background: white; border-radius: var(--chat-radius-sm); padding: 4px;">
             <button class="chat-close-btn">×</button>
         </div>
         <div class="chat-welcome">
@@ -649,11 +650,11 @@
     chatWindow.innerHTML = welcomeScreenHTML + chatInterfaceHTML;
     
     // Create toggle button
-    const launchButton = document.createElement('button');
+    const launcherLogoUrl = settings.branding.launcherLogo ? settings.branding.launcherLogo : settings.branding.logo;
     launchButton.className = `chat-launcher ${settings.style.position === 'left' ? 'left-side' : 'right-side'}`;
     launchButton.innerHTML = `
-        <img src="https://i.postimg.cc/z3Hb8Ldc/temp-Image-WCKnc-N.avif" alt="Drumhierny Logo" style="width: 24px; height: 24px; object-fit: contain;">
-        <span class="chat-launcher-text">Speak with team Drumhierny</span>`;
+        <img src="${launcherLogoUrl}" alt="${settings.branding.name} Launcher Logo" style="width: 32px; height: 32px; object-fit: contain; background: white; border-radius: var(--chat-radius-full); padding: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.07);">
+        <span class="chat-launcher-text">Speak with team ${settings.branding.name}</span>`;
     
     // Add elements to DOM
     widgetRoot.appendChild(chatWindow);
