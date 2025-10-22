@@ -605,9 +605,23 @@
     chatWindow.className = `chat-window ${settings.style.position === 'left' ? 'left-side' : 'right-side'}`;
     
     // Create welcome screen with header
+    const headerLogoUrl = settings.branding.logo || '';
+    const launcherLogoUrl = settings.branding.launcherLogo || settings.branding.logo || '';
+    
+    if (!headerLogoUrl) {
+        console.warn('No header logo set in ChatWidgetConfig.branding.logo');
+    } else {
+        console.log('Header logo URL being used:', headerLogoUrl);
+    }
+    if (!launcherLogoUrl) {
+        console.warn('No launcher logo set.');
+    } else {
+        console.log('Launcher logo URL being used:', launcherLogoUrl);
+    }
+
     const welcomeScreenHTML = `
         <div class="chat-header">
-            <img class="chat-header-logo" src="${settings.branding.logo}" alt="${settings.branding.name} Logo">
+            <img class="chat-header-logo" src="${headerLogoUrl}" alt="${settings.branding.name} Logo" onerror="this.style.display='none';">
             <button class="chat-close-btn">×</button>
         </div>
         <div class="chat-welcome">
@@ -663,7 +677,7 @@
     const launchButton = document.createElement('button');
     launchButton.className = `chat-launcher ${settings.style.position === 'left' ? 'left-side' : 'right-side'}`;
     launchButton.innerHTML = `
-        <img src="${settings.branding.logo}" alt="${settings.branding.name} Logo" style="width: 32px; height: 32px; object-fit: contain; background: white; border-radius: var(--chat-radius-full); padding: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.07);">
+        <img src="${launcherLogoUrl}" alt="${settings.branding.name} Logo" onerror="this.style.display='none';" style="width: 32px; height: 32px; object-fit: contain; background: white; border-radius: var(--chat-radius-full); padding: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.07);">
         <span class="chat-launcher-text">Speak with team ${settings.branding.name}</span>`;
     
     // Add elements to DOM
