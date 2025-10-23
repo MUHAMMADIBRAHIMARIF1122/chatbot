@@ -556,8 +556,8 @@
             welcomeText: '',
             responseTimeText: '',
             poweredBy: {
-                text: 'Powered by n8n',
-                link: 'https://n8n.partnerlinks.io/fabimarkl'
+                text: '',
+                link: ''
             }
         },
         style: {
