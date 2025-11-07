@@ -541,6 +541,31 @@
             cursor: not-allowed;
             transform: none;
         }
+
+        .chat-assist-widget .form-checkbox-field {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            text-align: left;
+            margin-top: 4px;
+        }
+
+        .chat-assist-widget .form-checkbox {
+            margin-top: 2px;
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            accent-color: var(--chat-color-primary);
+        }
+
+        .chat-assist-widget .form-checkbox-label {
+            font-size: 13px;
+            color: var(--chat-color-text);
+            line-height: 1.5;
+            cursor: pointer;
+            user-select: none;
+        }
     `;
     document.head.appendChild(widgetStyles);
 
@@ -558,7 +583,8 @@
             poweredBy: {
                 text: '',
                 link: ''
-            }
+            },
+            termsCheckboxLabel: 'I agree to the chatbot\'s terms and conditions.'
         },
         style: {
             primaryColor: '#10b981', // Green
@@ -647,6 +673,10 @@
                     <input type="email" id="chat-user-email" class="form-input" placeholder="Your email address" required>
                     <div class="error-text" id="email-error"></div>
                 </div>
+                <div class="form-checkbox-field">
+                    <input type="checkbox" id="chat-terms-checkbox" class="form-checkbox">
+                    <label class="form-checkbox-label" for="chat-terms-checkbox">${settings.branding.termsCheckboxLabel}</label>
+                </div>
                 <button type="submit" class="submit-registration">Continue to Chat</button>
             </form>
         </div>
@@ -699,6 +729,7 @@
     const chatWelcome = chatWindow.querySelector('.chat-welcome');
     const nameInput = chatWindow.querySelector('#chat-user-name');
     const emailInput = chatWindow.querySelector('#chat-user-email');
+    const termsCheckbox = chatWindow.querySelector('#chat-terms-checkbox');
     const nameError = chatWindow.querySelector('#name-error');
     const emailError = chatWindow.querySelector('#email-error');
 
@@ -820,6 +851,9 @@
                 route: settings.webhook.route,
                 chatInput: userInfoMessage,
                 metadata: {
+                    name: name,
+                    email: email,
+                    checked: termsCheckbox ? termsCheckbox.checked : false,
                     userId: email,
                     userName: name,
                     isUserInfo: true
@@ -905,6 +939,9 @@
             route: settings.webhook.route,
             chatInput: messageText,
             metadata: {
+                name: nameInput ? nameInput.value.trim() : "",
+                email: emailInput ? emailInput.value.trim() : "",
+                checked: termsCheckbox ? termsCheckbox.checked : false,
                 userId: email,
                 userName: name
             }
