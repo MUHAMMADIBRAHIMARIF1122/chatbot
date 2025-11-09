@@ -426,9 +426,6 @@
             font-weight: 600;
             font-size: 14px;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
         }
 
         .chat-assist-widget .chat-footer {
@@ -671,6 +668,8 @@
             .chat-assist-widget .chat-launcher-text {
                 font-size: 13px;
                 max-width: 160px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .chat-assist-widget .chat-welcome {
@@ -792,6 +791,8 @@
             .chat-assist-widget .chat-launcher-text {
                 font-size: 12px;
                 max-width: 140px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .chat-assist-widget .chat-welcome-title {
@@ -1161,8 +1162,16 @@
 
     // Show registration form
     function showRegistrationForm() {
+        if (!chatWelcome || !userRegistration) {
+            console.error('Registration form elements not found');
+            return;
+        }
         chatWelcome.style.display = 'none';
         userRegistration.classList.add('active');
+        // Ensure chat body is hidden
+        if (chatBody) {
+            chatBody.classList.remove('active');
+        }
     }
 
     // Validate email format
@@ -1206,6 +1215,16 @@
         
         if (!isValid) return;
         
+        // Validate webhook URL
+        if (!settings.webhook.url || settings.webhook.url.trim() === '') {
+            console.error('Webhook URL is not configured');
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'chat-bubble bot-bubble';
+            errorMessage.textContent = "Configuration error: Webhook URL is not set. Please contact support.";
+            messagesContainer.appendChild(errorMessage);
+            return;
+        }
+        
         // Initialize conversation with user data
         conversationId = createSessionId();
         
@@ -1221,22 +1240,54 @@
         }];
 
         try {
-            // Hide registration form, show chat interface
-            userRegistration.classList.remove('active');
-            chatBody.classList.add('active');
+            // Hide registration form
+            if (userRegistration) {
+                userRegistration.classList.remove('active');
+            }
+            // Show chat interface only after registration is complete
+            if (chatBody) {
+                chatBody.classList.add('active');
+            }
+            // Ensure welcome screen is hidden
+            if (chatWelcome) {
+                chatWelcome.style.display = 'none';
+            }
             
             // Show typing indicator
             const typingIndicator = createTypingIndicator();
             messagesContainer.appendChild(typingIndicator);
             
-            // Load session
-            const sessionResponse = await fetch(settings.webhook.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(sessionData)
-            });
+            // Load session with timeout and better error handling
+            const sessionController = new AbortController();
+            const sessionTimeout = setTimeout(() => sessionController.abort(), 30000); // 30 second timeout
+            
+            let sessionResponse;
+            try {
+                sessionResponse = await fetch(settings.webhook.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(sessionData),
+                    signal: sessionController.signal,
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                clearTimeout(sessionTimeout);
+            } catch (fetchError) {
+                clearTimeout(sessionTimeout);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                }
+                throw fetchError;
+            }
+            
+            if (!sessionResponse.ok) {
+                const errorText = await sessionResponse.text();
+                console.error('Session load failed:', sessionResponse.status, errorText);
+                throw new Error(`Server error: ${sessionResponse.status} ${sessionResponse.statusText}`);
+            }
             
             const sessionResponseData = await sessionResponse.json();
             
@@ -1258,14 +1309,37 @@
                 }
             };
             
-            // Send user info
-            const userInfoResponse = await fetch(settings.webhook.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userInfoData)
-            });
+            // Send user info with timeout and better error handling
+            const userInfoController = new AbortController();
+            const userInfoTimeout = setTimeout(() => userInfoController.abort(), 30000); // 30 second timeout
+            
+            let userInfoResponse;
+            try {
+                userInfoResponse = await fetch(settings.webhook.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(userInfoData),
+                    signal: userInfoController.signal,
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                clearTimeout(userInfoTimeout);
+            } catch (fetchError) {
+                clearTimeout(userInfoTimeout);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                }
+                throw fetchError;
+            }
+            
+            if (!userInfoResponse.ok) {
+                const errorText = await userInfoResponse.text();
+                console.error('User info send failed:', userInfoResponse.status, errorText);
+                throw new Error(`Server error: ${userInfoResponse.status} ${userInfoResponse.statusText}`);
+            }
             
             const userInfoResponseData = await userInfoResponse.json();
             
@@ -1289,13 +1363,19 @@
                     const questionButton = document.createElement('button');
                     questionButton.className = 'suggested-question-btn';
                     questionButton.textContent = question;
-                    questionButton.addEventListener('click', () => {
+                    const handleQuestionClick = (e) => {
+                        if (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
                         submitMessage(question);
                         // Remove the suggestions after clicking
                         if (suggestedQuestionsContainer.parentNode) {
                             suggestedQuestionsContainer.parentNode.removeChild(suggestedQuestionsContainer);
                         }
-                    });
+                    };
+                    questionButton.addEventListener('click', handleQuestionClick);
+                    questionButton.addEventListener('touchend', handleQuestionClick);
                     suggestedQuestionsContainer.appendChild(questionButton);
                 });
                 
@@ -1305,6 +1385,12 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
             console.error('Registration error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack,
+                webhookUrl: settings.webhook.url
+            });
             
             // Remove typing indicator if it exists
             const indicator = messagesContainer.querySelector('.typing-indicator');
@@ -1312,18 +1398,64 @@
                 messagesContainer.removeChild(indicator);
             }
             
-            // Show error message
+            // Show error message with more details
             const errorMessage = document.createElement('div');
             errorMessage.className = 'chat-bubble bot-bubble';
-            errorMessage.textContent = "Sorry, I couldn't connect to the server. Please try again later.";
+            let errorText = "Sorry, I couldn't connect to the server. Please try again later.";
+            if (error.message && error.message.includes('timeout')) {
+                errorText = "Request timed out. Please check your internet connection and try again.";
+            } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed'))) {
+                errorText = "Network error. Please check your internet connection. If the problem persists, the server may be blocking requests from your network.";
+            } else if (error.message && (error.message.includes('CORS') || error.message.includes('cross-origin'))) {
+                errorText = "Connection blocked by browser security. Please contact support to configure CORS headers on the server.";
+            } else if (error.message && error.message.includes('Server error')) {
+                errorText = `Server error occurred (${error.message.match(/\d{3}/)?.[0] || 'Unknown'}). Please try again later.`;
+            }
+            errorMessage.textContent = errorText;
             messagesContainer.appendChild(errorMessage);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Log detailed error for debugging (visible in browser console)
+            console.error('=== CHATBOT ERROR DEBUG INFO ===');
+            console.error('Error Type:', error.name);
+            console.error('Error Message:', error.message);
+            console.error('Webhook URL:', settings.webhook.url);
+            console.error('User Agent:', navigator.userAgent);
+            console.error('Is Mobile:', /Mobile|Android|iPhone|iPad/.test(navigator.userAgent));
+            console.error('Full Error:', error);
+            console.error('================================');
         }
     }
 
     // Send a message to the webhook
     async function submitMessage(messageText) {
         if (isWaitingForResponse) return;
+        
+        // Check if user has registered (conversationId must be set)
+        if (!conversationId || conversationId.trim() === '') {
+            console.error('Cannot send message: User not registered');
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'chat-bubble bot-bubble';
+            errorMessage.textContent = "Please register first by filling out the form.";
+            if (messagesContainer) {
+                messagesContainer.appendChild(errorMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            return;
+        }
+        
+        // Check if webhook URL is configured
+        if (!settings.webhook.url || settings.webhook.url.trim() === '') {
+            console.error('Webhook URL is not configured');
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'chat-bubble bot-bubble';
+            errorMessage.textContent = "Configuration error: Webhook URL is not set. Please contact support.";
+            if (messagesContainer) {
+                messagesContainer.appendChild(errorMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            return;
+        }
         
         isWaitingForResponse = true;
         
@@ -1345,6 +1477,13 @@
             }
         };
 
+        // Check if messagesContainer exists
+        if (!messagesContainer) {
+            console.error('Messages container not found');
+            isWaitingForResponse = false;
+            return;
+        }
+        
         // Display user message
         const userMessage = document.createElement('div');
         userMessage.className = 'chat-bubble user-bubble';
@@ -1357,13 +1496,37 @@
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
         try {
-            const response = await fetch(settings.webhook.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            });
+            // Add timeout and better error handling
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            
+            let response;
+            try {
+                response = await fetch(settings.webhook.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestData),
+                    signal: controller.signal,
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                clearTimeout(timeout);
+            } catch (fetchError) {
+                clearTimeout(timeout);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                }
+                throw fetchError;
+            }
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Message send failed:', response.status, errorText);
+                throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            }
             
             const responseData = await response.json();
             
@@ -1379,16 +1542,42 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
             console.error('Message submission error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack,
+                webhookUrl: settings.webhook.url
+            });
             
             // Remove typing indicator
             messagesContainer.removeChild(typingIndicator);
             
-            // Show error message
+            // Show error message with more details
             const errorMessage = document.createElement('div');
             errorMessage.className = 'chat-bubble bot-bubble';
-            errorMessage.textContent = "Sorry, I couldn't send your message. Please try again.";
+            let errorText = "Sorry, I couldn't send your message. Please try again.";
+            if (error.message && error.message.includes('timeout')) {
+                errorText = "Request timed out. Please check your internet connection and try again.";
+            } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed'))) {
+                errorText = "Network error. Please check your internet connection. If the problem persists, the server may be blocking requests from your network.";
+            } else if (error.message && (error.message.includes('CORS') || error.message.includes('cross-origin'))) {
+                errorText = "Connection blocked by browser security. Please contact support to configure CORS headers on the server.";
+            } else if (error.message && error.message.includes('Server error')) {
+                errorText = `Server error occurred (${error.message.match(/\d{3}/)?.[0] || 'Unknown'}). Please try again later.`;
+            }
+            errorMessage.textContent = errorText;
             messagesContainer.appendChild(errorMessage);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Log detailed error for debugging (visible in browser console)
+            console.error('=== CHATBOT ERROR DEBUG INFO ===');
+            console.error('Error Type:', error.name);
+            console.error('Error Message:', error.message);
+            console.error('Webhook URL:', settings.webhook.url);
+            console.error('User Agent:', navigator.userAgent);
+            console.error('Is Mobile:', /Mobile|Android|iPhone|iPad/.test(navigator.userAgent));
+            console.error('Full Error:', error);
+            console.error('================================');
         } finally {
             isWaitingForResponse = false;
         }
@@ -1396,36 +1585,96 @@
 
     // Auto-resize textarea as user types
     function autoResizeTextarea() {
+        if (!messageTextarea) return;
         messageTextarea.style.height = 'auto';
         messageTextarea.style.height = (messageTextarea.scrollHeight > 120 ? 120 : messageTextarea.scrollHeight) + 'px';
     }
 
-    // Event listeners
-    startChatButton.addEventListener('click', showRegistrationForm);
-    registrationForm.addEventListener('submit', handleRegistration);
+    // Ensure chat body is hidden initially and registration form is ready
+    if (chatBody) {
+        chatBody.classList.remove('active');
+    }
+    if (userRegistration) {
+        userRegistration.classList.remove('active');
+    }
+    if (chatWelcome) {
+        chatWelcome.style.display = 'block';
+    }
     
-    sendButton.addEventListener('click', () => {
-        const messageText = messageTextarea.value.trim();
-        if (messageText && !isWaitingForResponse) {
-            submitMessage(messageText);
-            messageTextarea.value = '';
-            messageTextarea.style.height = 'auto';
-        }
-    });
+    // Event listeners with error checking
+    if (startChatButton) {
+        // Add both click and touchstart for mobile support
+        startChatButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showRegistrationForm();
+        });
+        startChatButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showRegistrationForm();
+        });
+    } else {
+        console.error('Start chat button not found');
+    }
     
-    messageTextarea.addEventListener('input', autoResizeTextarea);
+    if (registrationForm) {
+        registrationForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleRegistration(e);
+        });
+    } else {
+        console.error('Registration form not found');
+    }
     
-    messageTextarea.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            const messageText = messageTextarea.value.trim();
+    if (sendButton) {
+        sendButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const messageText = messageTextarea ? messageTextarea.value.trim() : '';
             if (messageText && !isWaitingForResponse) {
                 submitMessage(messageText);
-                messageTextarea.value = '';
-                messageTextarea.style.height = 'auto';
+                if (messageTextarea) {
+                    messageTextarea.value = '';
+                    messageTextarea.style.height = 'auto';
+                }
             }
-        }
-    });
+        });
+        // Add touch support for mobile
+        sendButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const messageText = messageTextarea ? messageTextarea.value.trim() : '';
+            if (messageText && !isWaitingForResponse) {
+                submitMessage(messageText);
+                if (messageTextarea) {
+                    messageTextarea.value = '';
+                    messageTextarea.style.height = 'auto';
+                }
+            }
+        });
+    } else {
+        console.error('Send button not found');
+    }
+    
+    if (messageTextarea) {
+        messageTextarea.addEventListener('input', autoResizeTextarea);
+        
+        messageTextarea.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                const messageText = messageTextarea.value.trim();
+                if (messageText && !isWaitingForResponse) {
+                    submitMessage(messageText);
+                    messageTextarea.value = '';
+                    messageTextarea.style.height = 'auto';
+                }
+            }
+        });
+    } else {
+        console.error('Message textarea not found');
+    }
     
     // Attach keyboard visibility handlers
     if (messageTextarea) {
@@ -1443,23 +1692,60 @@
         emailInput.addEventListener('blur', handleTextareaBlur);
     }
     
-    launchButton.addEventListener('click', () => {
+    // Function to reset chat to welcome screen
+    function resetChatToWelcome() {
+        // Reset conversation ID if user hasn't registered
+        if (!conversationId || conversationId.trim() === '') {
+            // Hide chat body
+            if (chatBody) {
+                chatBody.classList.remove('active');
+            }
+            // Hide registration form
+            if (userRegistration) {
+                userRegistration.classList.remove('active');
+            }
+            // Show welcome screen
+            if (chatWelcome) {
+                chatWelcome.style.display = 'block';
+            }
+        }
+    }
+    
+    const handleLaunchButtonClick = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         const isOpening = !chatWindow.classList.contains('visible');
         chatWindow.classList.toggle('visible');
         if (isOpening) {
-            // When opening, ensure proper positioning
+            // When opening, reset to welcome screen if not registered
+            resetChatToWelcome();
+            // Ensure proper positioning
             setTimeout(() => {
                 setViewportHeight();
                 adjustChatWindowPosition();
             }, 100);
         }
-    });
+    };
+    
+    launchButton.addEventListener('click', handleLaunchButtonClick);
+    launchButton.addEventListener('touchend', handleLaunchButtonClick);
 
     // Close button functionality
     const closeButtons = chatWindow.querySelectorAll('.chat-close-btn');
     closeButtons.forEach(button => {
         button.addEventListener('click', () => {
             chatWindow.classList.remove('visible');
+            // Reset to welcome screen when closing if not registered
+            resetChatToWelcome();
+        });
+        // Add touch support for mobile
+        button.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            chatWindow.classList.remove('visible');
+            resetChatToWelcome();
         });
     });
 })();
