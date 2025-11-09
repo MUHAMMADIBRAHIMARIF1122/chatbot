@@ -1207,6 +1207,16 @@
         
         if (!isValid) return;
         
+        // Validate webhook URL
+        if (!settings.webhook.url || settings.webhook.url.trim() === '') {
+            console.error('Webhook URL is not configured');
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'chat-bubble bot-bubble';
+            errorMessage.textContent = "Configuration error: Webhook URL is not set. Please contact support.";
+            messagesContainer.appendChild(errorMessage);
+            return;
+        }
+        
         // Initialize conversation with user data
         conversationId = createSessionId();
         
@@ -1230,14 +1240,37 @@
             const typingIndicator = createTypingIndicator();
             messagesContainer.appendChild(typingIndicator);
             
-            // Load session
-            const sessionResponse = await fetch(settings.webhook.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(sessionData)
-            });
+            // Load session with timeout and better error handling
+            const sessionController = new AbortController();
+            const sessionTimeout = setTimeout(() => sessionController.abort(), 30000); // 30 second timeout
+            
+            let sessionResponse;
+            try {
+                sessionResponse = await fetch(settings.webhook.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(sessionData),
+                    signal: sessionController.signal,
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                clearTimeout(sessionTimeout);
+            } catch (fetchError) {
+                clearTimeout(sessionTimeout);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                }
+                throw fetchError;
+            }
+            
+            if (!sessionResponse.ok) {
+                const errorText = await sessionResponse.text();
+                console.error('Session load failed:', sessionResponse.status, errorText);
+                throw new Error(`Server error: ${sessionResponse.status} ${sessionResponse.statusText}`);
+            }
             
             const sessionResponseData = await sessionResponse.json();
             
@@ -1259,14 +1292,37 @@
                 }
             };
             
-            // Send user info
-            const userInfoResponse = await fetch(settings.webhook.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userInfoData)
-            });
+            // Send user info with timeout and better error handling
+            const userInfoController = new AbortController();
+            const userInfoTimeout = setTimeout(() => userInfoController.abort(), 30000); // 30 second timeout
+            
+            let userInfoResponse;
+            try {
+                userInfoResponse = await fetch(settings.webhook.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(userInfoData),
+                    signal: userInfoController.signal,
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                clearTimeout(userInfoTimeout);
+            } catch (fetchError) {
+                clearTimeout(userInfoTimeout);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                }
+                throw fetchError;
+            }
+            
+            if (!userInfoResponse.ok) {
+                const errorText = await userInfoResponse.text();
+                console.error('User info send failed:', userInfoResponse.status, errorText);
+                throw new Error(`Server error: ${userInfoResponse.status} ${userInfoResponse.statusText}`);
+            }
             
             const userInfoResponseData = await userInfoResponse.json();
             
@@ -1306,6 +1362,12 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
             console.error('Registration error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack,
+                webhookUrl: settings.webhook.url
+            });
             
             // Remove typing indicator if it exists
             const indicator = messagesContainer.querySelector('.typing-indicator');
@@ -1313,12 +1375,32 @@
                 messagesContainer.removeChild(indicator);
             }
             
-            // Show error message
+            // Show error message with more details
             const errorMessage = document.createElement('div');
             errorMessage.className = 'chat-bubble bot-bubble';
-            errorMessage.textContent = "Sorry, I couldn't connect to the server. Please try again later.";
+            let errorText = "Sorry, I couldn't connect to the server. Please try again later.";
+            if (error.message && error.message.includes('timeout')) {
+                errorText = "Request timed out. Please check your internet connection and try again.";
+            } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed'))) {
+                errorText = "Network error. Please check your internet connection. If the problem persists, the server may be blocking requests from your network.";
+            } else if (error.message && (error.message.includes('CORS') || error.message.includes('cross-origin'))) {
+                errorText = "Connection blocked by browser security. Please contact support to configure CORS headers on the server.";
+            } else if (error.message && error.message.includes('Server error')) {
+                errorText = `Server error occurred (${error.message.match(/\d{3}/)?.[0] || 'Unknown'}). Please try again later.`;
+            }
+            errorMessage.textContent = errorText;
             messagesContainer.appendChild(errorMessage);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Log detailed error for debugging (visible in browser console)
+            console.error('=== CHATBOT ERROR DEBUG INFO ===');
+            console.error('Error Type:', error.name);
+            console.error('Error Message:', error.message);
+            console.error('Webhook URL:', settings.webhook.url);
+            console.error('User Agent:', navigator.userAgent);
+            console.error('Is Mobile:', /Mobile|Android|iPhone|iPad/.test(navigator.userAgent));
+            console.error('Full Error:', error);
+            console.error('================================');
         }
     }
 
@@ -1358,13 +1440,37 @@
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
         try {
-            const response = await fetch(settings.webhook.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestData)
-            });
+            // Add timeout and better error handling
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            
+            let response;
+            try {
+                response = await fetch(settings.webhook.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestData),
+                    signal: controller.signal,
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                clearTimeout(timeout);
+            } catch (fetchError) {
+                clearTimeout(timeout);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                }
+                throw fetchError;
+            }
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Message send failed:', response.status, errorText);
+                throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            }
             
             const responseData = await response.json();
             
@@ -1380,16 +1486,42 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
             console.error('Message submission error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack,
+                webhookUrl: settings.webhook.url
+            });
             
             // Remove typing indicator
             messagesContainer.removeChild(typingIndicator);
             
-            // Show error message
+            // Show error message with more details
             const errorMessage = document.createElement('div');
             errorMessage.className = 'chat-bubble bot-bubble';
-            errorMessage.textContent = "Sorry, I couldn't send your message. Please try again.";
+            let errorText = "Sorry, I couldn't send your message. Please try again.";
+            if (error.message && error.message.includes('timeout')) {
+                errorText = "Request timed out. Please check your internet connection and try again.";
+            } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed'))) {
+                errorText = "Network error. Please check your internet connection. If the problem persists, the server may be blocking requests from your network.";
+            } else if (error.message && (error.message.includes('CORS') || error.message.includes('cross-origin'))) {
+                errorText = "Connection blocked by browser security. Please contact support to configure CORS headers on the server.";
+            } else if (error.message && error.message.includes('Server error')) {
+                errorText = `Server error occurred (${error.message.match(/\d{3}/)?.[0] || 'Unknown'}). Please try again later.`;
+            }
+            errorMessage.textContent = errorText;
             messagesContainer.appendChild(errorMessage);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Log detailed error for debugging (visible in browser console)
+            console.error('=== CHATBOT ERROR DEBUG INFO ===');
+            console.error('Error Type:', error.name);
+            console.error('Error Message:', error.message);
+            console.error('Webhook URL:', settings.webhook.url);
+            console.error('User Agent:', navigator.userAgent);
+            console.error('Is Mobile:', /Mobile|Android|iPhone|iPad/.test(navigator.userAgent));
+            console.error('Full Error:', error);
+            console.error('================================');
         } finally {
             isWaitingForResponse = false;
         }
