@@ -191,7 +191,7 @@
         }
 
         .chat-assist-widget .chat-body {
-            display: none;
+            display: none !important;
             flex-direction: column;
             height: 100%;
             min-height: 0;
@@ -199,7 +199,7 @@
         }
 
         .chat-assist-widget .chat-body.active {
-            display: flex;
+            display: flex !important;
         }
 
         .chat-assist-widget .chat-messages {
@@ -498,14 +498,14 @@
             text-align: center;
             width: 100%;
             max-width: 320px;
-            display: none;
+            display: none !important;
             box-sizing: border-box;
             overflow-y: auto;
             max-height: calc(100% - 72px);
         }
 
         .chat-assist-widget .user-registration.active {
-            display: block;
+            display: block !important;
         }
 
         .chat-assist-widget .registration-title {
@@ -707,9 +707,13 @@
             }
 
             .chat-assist-widget .chat-body {
+                display: none !important;
+            }
+            
+            .chat-assist-widget .chat-body.active {
+                display: flex !important;
                 min-height: 0;
                 height: 100%;
-                display: flex;
                 flex-direction: column;
             }
 
@@ -1166,9 +1170,11 @@
             console.error('Registration form elements not found');
             return;
         }
-        chatWelcome.style.display = 'none';
+        // Hide welcome screen with !important to override CSS
+        chatWelcome.style.setProperty('display', 'none', 'important');
+        // Show registration form
         userRegistration.classList.add('active');
-        // Ensure chat body is hidden
+        // Ensure chat body is hidden (remove active class)
         if (chatBody) {
             chatBody.classList.remove('active');
         }
@@ -1250,7 +1256,7 @@
             }
             // Ensure welcome screen is hidden
             if (chatWelcome) {
-                chatWelcome.style.display = 'none';
+                chatWelcome.style.setProperty('display', 'none', 'important');
             }
             
             // Show typing indicator
@@ -1591,15 +1597,34 @@
     }
 
     // Ensure chat body is hidden initially and registration form is ready
+    console.log('Initializing chat widget state...');
+    console.log('conversationId:', conversationId);
+    
     if (chatBody) {
         chatBody.classList.remove('active');
+        console.log('Chat body: hidden (active class removed)');
+    } else {
+        console.error('Chat body element not found!');
     }
+    
     if (userRegistration) {
         userRegistration.classList.remove('active');
+        console.log('Registration form: hidden (active class removed)');
+    } else {
+        console.error('Registration form element not found!');
     }
+    
     if (chatWelcome) {
-        chatWelcome.style.display = 'block';
+        // Ensure welcome screen is visible by default (no inline style)
+        if (chatWelcome.style.display === 'none') {
+            chatWelcome.style.removeProperty('display');
+        }
+        console.log('Welcome screen: visible');
+    } else {
+        console.error('Welcome screen element not found!');
     }
+    
+    console.log('Chat widget initialized. Expected state: Welcome screen visible, registration hidden, chat body hidden');
     
     // Event listeners with error checking
     if (startChatButton) {
@@ -1696,17 +1721,17 @@
     function resetChatToWelcome() {
         // Reset conversation ID if user hasn't registered
         if (!conversationId || conversationId.trim() === '') {
-            // Hide chat body
+            // Hide chat body (remove active class)
             if (chatBody) {
                 chatBody.classList.remove('active');
             }
-            // Hide registration form
+            // Hide registration form (remove active class)
             if (userRegistration) {
                 userRegistration.classList.remove('active');
             }
-            // Show welcome screen
+            // Show welcome screen (remove inline display style to use CSS default)
             if (chatWelcome) {
-                chatWelcome.style.display = 'block';
+                chatWelcome.style.removeProperty('display');
             }
         }
     }
