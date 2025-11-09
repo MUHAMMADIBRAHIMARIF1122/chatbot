@@ -1162,8 +1162,16 @@
 
     // Show registration form
     function showRegistrationForm() {
+        if (!chatWelcome || !userRegistration) {
+            console.error('Registration form elements not found');
+            return;
+        }
         chatWelcome.style.display = 'none';
         userRegistration.classList.add('active');
+        // Ensure chat body is hidden
+        if (chatBody) {
+            chatBody.classList.remove('active');
+        }
     }
 
     // Validate email format
@@ -1232,9 +1240,18 @@
         }];
 
         try {
-            // Hide registration form, show chat interface
-            userRegistration.classList.remove('active');
-            chatBody.classList.add('active');
+            // Hide registration form
+            if (userRegistration) {
+                userRegistration.classList.remove('active');
+            }
+            // Show chat interface only after registration is complete
+            if (chatBody) {
+                chatBody.classList.add('active');
+            }
+            // Ensure welcome screen is hidden
+            if (chatWelcome) {
+                chatWelcome.style.display = 'none';
+            }
             
             // Show typing indicator
             const typingIndicator = createTypingIndicator();
@@ -1346,13 +1363,19 @@
                     const questionButton = document.createElement('button');
                     questionButton.className = 'suggested-question-btn';
                     questionButton.textContent = question;
-                    questionButton.addEventListener('click', () => {
+                    const handleQuestionClick = (e) => {
+                        if (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
                         submitMessage(question);
                         // Remove the suggestions after clicking
                         if (suggestedQuestionsContainer.parentNode) {
                             suggestedQuestionsContainer.parentNode.removeChild(suggestedQuestionsContainer);
                         }
-                    });
+                    };
+                    questionButton.addEventListener('click', handleQuestionClick);
+                    questionButton.addEventListener('touchend', handleQuestionClick);
                     suggestedQuestionsContainer.appendChild(questionButton);
                 });
                 
@@ -1408,6 +1431,32 @@
     async function submitMessage(messageText) {
         if (isWaitingForResponse) return;
         
+        // Check if user has registered (conversationId must be set)
+        if (!conversationId || conversationId.trim() === '') {
+            console.error('Cannot send message: User not registered');
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'chat-bubble bot-bubble';
+            errorMessage.textContent = "Please register first by filling out the form.";
+            if (messagesContainer) {
+                messagesContainer.appendChild(errorMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            return;
+        }
+        
+        // Check if webhook URL is configured
+        if (!settings.webhook.url || settings.webhook.url.trim() === '') {
+            console.error('Webhook URL is not configured');
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'chat-bubble bot-bubble';
+            errorMessage.textContent = "Configuration error: Webhook URL is not set. Please contact support.";
+            if (messagesContainer) {
+                messagesContainer.appendChild(errorMessage);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            return;
+        }
+        
         isWaitingForResponse = true;
         
         // Get user info if available
@@ -1428,6 +1477,13 @@
             }
         };
 
+        // Check if messagesContainer exists
+        if (!messagesContainer) {
+            console.error('Messages container not found');
+            isWaitingForResponse = false;
+            return;
+        }
+        
         // Display user message
         const userMessage = document.createElement('div');
         userMessage.className = 'chat-bubble user-bubble';
@@ -1529,36 +1585,96 @@
 
     // Auto-resize textarea as user types
     function autoResizeTextarea() {
+        if (!messageTextarea) return;
         messageTextarea.style.height = 'auto';
         messageTextarea.style.height = (messageTextarea.scrollHeight > 120 ? 120 : messageTextarea.scrollHeight) + 'px';
     }
 
-    // Event listeners
-    startChatButton.addEventListener('click', showRegistrationForm);
-    registrationForm.addEventListener('submit', handleRegistration);
+    // Ensure chat body is hidden initially and registration form is ready
+    if (chatBody) {
+        chatBody.classList.remove('active');
+    }
+    if (userRegistration) {
+        userRegistration.classList.remove('active');
+    }
+    if (chatWelcome) {
+        chatWelcome.style.display = 'block';
+    }
     
-    sendButton.addEventListener('click', () => {
-        const messageText = messageTextarea.value.trim();
-        if (messageText && !isWaitingForResponse) {
-            submitMessage(messageText);
-            messageTextarea.value = '';
-            messageTextarea.style.height = 'auto';
-        }
-    });
+    // Event listeners with error checking
+    if (startChatButton) {
+        // Add both click and touchstart for mobile support
+        startChatButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showRegistrationForm();
+        });
+        startChatButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showRegistrationForm();
+        });
+    } else {
+        console.error('Start chat button not found');
+    }
     
-    messageTextarea.addEventListener('input', autoResizeTextarea);
+    if (registrationForm) {
+        registrationForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleRegistration(e);
+        });
+    } else {
+        console.error('Registration form not found');
+    }
     
-    messageTextarea.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            const messageText = messageTextarea.value.trim();
+    if (sendButton) {
+        sendButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const messageText = messageTextarea ? messageTextarea.value.trim() : '';
             if (messageText && !isWaitingForResponse) {
                 submitMessage(messageText);
-                messageTextarea.value = '';
-                messageTextarea.style.height = 'auto';
+                if (messageTextarea) {
+                    messageTextarea.value = '';
+                    messageTextarea.style.height = 'auto';
+                }
             }
-        }
-    });
+        });
+        // Add touch support for mobile
+        sendButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const messageText = messageTextarea ? messageTextarea.value.trim() : '';
+            if (messageText && !isWaitingForResponse) {
+                submitMessage(messageText);
+                if (messageTextarea) {
+                    messageTextarea.value = '';
+                    messageTextarea.style.height = 'auto';
+                }
+            }
+        });
+    } else {
+        console.error('Send button not found');
+    }
+    
+    if (messageTextarea) {
+        messageTextarea.addEventListener('input', autoResizeTextarea);
+        
+        messageTextarea.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                const messageText = messageTextarea.value.trim();
+                if (messageText && !isWaitingForResponse) {
+                    submitMessage(messageText);
+                    messageTextarea.value = '';
+                    messageTextarea.style.height = 'auto';
+                }
+            }
+        });
+    } else {
+        console.error('Message textarea not found');
+    }
     
     // Attach keyboard visibility handlers
     if (messageTextarea) {
@@ -1576,23 +1692,60 @@
         emailInput.addEventListener('blur', handleTextareaBlur);
     }
     
-    launchButton.addEventListener('click', () => {
+    // Function to reset chat to welcome screen
+    function resetChatToWelcome() {
+        // Reset conversation ID if user hasn't registered
+        if (!conversationId || conversationId.trim() === '') {
+            // Hide chat body
+            if (chatBody) {
+                chatBody.classList.remove('active');
+            }
+            // Hide registration form
+            if (userRegistration) {
+                userRegistration.classList.remove('active');
+            }
+            // Show welcome screen
+            if (chatWelcome) {
+                chatWelcome.style.display = 'block';
+            }
+        }
+    }
+    
+    const handleLaunchButtonClick = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
         const isOpening = !chatWindow.classList.contains('visible');
         chatWindow.classList.toggle('visible');
         if (isOpening) {
-            // When opening, ensure proper positioning
+            // When opening, reset to welcome screen if not registered
+            resetChatToWelcome();
+            // Ensure proper positioning
             setTimeout(() => {
                 setViewportHeight();
                 adjustChatWindowPosition();
             }, 100);
         }
-    });
+    };
+    
+    launchButton.addEventListener('click', handleLaunchButtonClick);
+    launchButton.addEventListener('touchend', handleLaunchButtonClick);
 
     // Close button functionality
     const closeButtons = chatWindow.querySelectorAll('.chat-close-btn');
     closeButtons.forEach(button => {
         button.addEventListener('click', () => {
             chatWindow.classList.remove('visible');
+            // Reset to welcome screen when closing if not registered
+            resetChatToWelcome();
+        });
+        // Add touch support for mobile
+        button.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            chatWindow.classList.remove('visible');
+            resetChatToWelcome();
         });
     });
 })();
