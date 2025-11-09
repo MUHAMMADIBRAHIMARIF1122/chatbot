@@ -426,9 +426,6 @@
             font-weight: 600;
             font-size: 14px;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
         }
 
         .chat-assist-widget .chat-footer {
@@ -671,6 +668,8 @@
             .chat-assist-widget .chat-launcher-text {
                 font-size: 13px;
                 max-width: 160px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .chat-assist-widget .chat-welcome {
@@ -792,6 +791,8 @@
             .chat-assist-widget .chat-launcher-text {
                 font-size: 12px;
                 max-width: 140px;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .chat-assist-widget .chat-welcome-title {
