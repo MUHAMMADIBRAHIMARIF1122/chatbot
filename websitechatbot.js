@@ -888,7 +888,7 @@
                 text: '',
                 link: ''
             },
-            termsCheckboxLabel: 'I agree to the chatbot\'s terms and conditions.'
+            termsCheckboxLabel: 'Agree to terms & conditions'
         },
         style: {
             primaryColor: '#10b981', // Green
