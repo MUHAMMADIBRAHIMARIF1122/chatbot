@@ -315,8 +315,6 @@
             gap: 8px;
             flex-shrink: 0;
             z-index: 10;
-            position: sticky;
-            bottom: 0;
             padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
         }
 
@@ -655,7 +653,9 @@
             }
             
             .chat-assist-widget .chat-controls {
-                position: sticky;
+                position: absolute;
+                left: 0;
+                right: 0;
                 bottom: 0;
                 padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
                 background: var(--chat-color-surface);
@@ -1154,7 +1154,7 @@
         const controlsEl = chatWindow.querySelector('.chat-controls');
         const messagesEl = chatWindow.querySelector('.chat-messages');
         if (controlsEl) {
-            controlsEl.style.marginBottom = overlap + 'px';
+            controlsEl.style.bottom = overlap + 'px';
         }
         if (messagesEl) {
             messagesEl.style.paddingBottom = (12 + overlap) + 'px';
@@ -1249,7 +1249,7 @@
             resizeMessagesArea();
             const controlsEl = chatWindow.querySelector('.chat-controls');
             const messagesEl = chatWindow.querySelector('.chat-messages');
-            if (controlsEl) controlsEl.style.marginBottom = '';
+            if (controlsEl) controlsEl.style.bottom = '';
             if (messagesEl) messagesEl.style.paddingBottom = '';
             // Ensure controls are visible and properly positioned
             const controls = chatWindow.querySelector('.chat-controls');
