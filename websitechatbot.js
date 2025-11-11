@@ -1096,6 +1096,8 @@
             if (isMobileView() && window.visualViewport.height < window.innerHeight) {
                 // Keyboard is likely visible
                 setViewportHeight();
+                // Keep conversation pinned to the latest messages while keyboard animates
+                scrollMessagesToBottom();
             }
         });
     }
@@ -1115,12 +1117,7 @@
             chatWindow.style.height = initialViewportPx + 'px';
             chatWindow.style.maxHeight = initialViewportPx + 'px';
             // Scroll to bottom of messages if needed
-            const msgContainer = chatWindow.querySelector('.chat-messages');
-            if (msgContainer) {
-                setTimeout(() => {
-                    msgContainer.scrollTop = msgContainer.scrollHeight;
-                }, 100);
-            }
+            setTimeout(() => scrollMessagesToBottom(true), 100);
             // Keep focused element centered to avoid misalignment
             const active = document.activeElement;
             if (active && typeof active.scrollIntoView === 'function') {
@@ -1181,6 +1178,14 @@
             <div class="typing-dot"></div>
         `;
         return indicator;
+    }
+    
+    // Utility: keep messages scrolled to the latest entry
+    function scrollMessagesToBottom(smooth = false) {
+        const msgContainer = chatWindow.querySelector('.chat-messages');
+        if (!msgContainer) return;
+        const behavior = smooth ? 'smooth' : 'auto';
+        msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior });
     }
 
     // Function to convert URLs in text to clickable links
@@ -1288,6 +1293,8 @@
             if (chatWelcome) {
                 chatWelcome.style.setProperty('display', 'none', 'important');
             }
+            // After switching screens, keep the thread in view
+            scrollMessagesToBottom();
             
             // Show typing indicator
             const typingIndicator = createTypingIndicator();
@@ -1715,6 +1722,10 @@
     
     if (messageTextarea) {
         messageTextarea.addEventListener('input', autoResizeTextarea);
+        // While typing on mobile, ensure the latest messages are visible
+        messageTextarea.addEventListener('input', () => {
+            if (isMobileView()) scrollMessagesToBottom();
+        });
         
         messageTextarea.addEventListener('keypress', (event) => {
             if (event.key === 'Enter' && !event.shiftKey) {
@@ -1784,6 +1795,7 @@
             setTimeout(() => {
                 setViewportHeight();
                 adjustChatWindowPosition();
+                scrollMessagesToBottom();
             }, 100);
         } else {
             unlockPageScroll();
@@ -1811,4 +1823,17 @@
             unlockPageScroll();
         });
     });
+    
+    // Observe message container size/children to maintain bottom anchor during keyboard transitions
+    const messagesEl = chatWindow.querySelector('.chat-messages');
+    if (messagesEl) {
+        const observer = new ResizeObserver(() => {
+            if (keyboardVisible && isMobileView()) scrollMessagesToBottom();
+        });
+        observer.observe(messagesEl);
+        const mo = new MutationObserver(() => {
+            if (keyboardVisible && isMobileView()) scrollMessagesToBottom();
+        });
+        mo.observe(messagesEl, { childList: true, subtree: false });
+    }
 })();
