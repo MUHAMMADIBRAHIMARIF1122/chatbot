@@ -1769,27 +1769,39 @@
             unlockPageScroll();
         }
     };
-    
-    launchButton.addEventListener('click', handleLaunchButtonClick);
-    launchButton.addEventListener('touchend', handleLaunchButtonClick);
+    // Robust event binding for launcher: capture phase and multiple inputs
+    launchButton.addEventListener('click', handleLaunchButtonClick, { capture: true });
+    launchButton.addEventListener('touchstart', (e) => {
+        handleLaunchButtonClick(e);
+    }, { passive: false, capture: true });
+    // Keyboard accessibility
+    launchButton.setAttribute('aria-haspopup', 'dialog');
+    launchButton.setAttribute('aria-expanded', 'false');
+    launchButton.setAttribute('role', 'button');
+    launchButton.tabIndex = 0;
+    const onLauncherKey = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            handleLaunchButtonClick(e);
+        }
+    };
+    launchButton.addEventListener('keydown', onLauncherKey, { capture: true });
 
     // Close button functionality
     const closeButtons = chatWindow.querySelectorAll('.chat-close-btn');
     closeButtons.forEach(button => {
-        button.addEventListener('click', () => {
+        const onClose = (e) => {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             chatWindow.classList.remove('visible');
             // Reset to welcome screen when closing if not registered
             resetChatToWelcome();
             unlockPageScroll();
-        });
-        // Add touch support for mobile
-        button.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            chatWindow.classList.remove('visible');
-            resetChatToWelcome();
-            unlockPageScroll();
-        });
+            launchButton.setAttribute('aria-expanded', 'false');
+        };
+        button.addEventListener('click', onClose, { capture: true });
+        button.addEventListener('touchstart', onClose, { passive: false, capture: true });
     });
     
     // Observe message container size/children to maintain bottom anchor during keyboard transitions
