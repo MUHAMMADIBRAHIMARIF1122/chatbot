@@ -48,6 +48,7 @@
             overflow: hidden;
             display: none;
             flex-direction: column;
+            overscroll-behavior: contain;
             transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 0;
             transform: translateY(20px) scale(0.95);
@@ -70,7 +71,8 @@
         }
 
         .chat-assist-widget .chat-header {
-            position: relative;
+            position: sticky;
+            top: 0;
             padding: 0 40px 0 12px;
             display: flex;
             align-items: center;
@@ -196,6 +198,7 @@
             height: 100%;
             min-height: 0;
             position: relative;
+            overflow: hidden;
         }
 
         .chat-assist-widget .chat-body.active {
