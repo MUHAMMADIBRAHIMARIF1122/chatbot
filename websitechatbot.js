@@ -31,6 +31,7 @@
             --chat-radius-full: 9999px;
             --chat-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-family: 'Poppins', sans-serif;
+            --keyboard-offset: 0px;
         }
 
         .chat-assist-widget .chat-window {
@@ -630,37 +631,44 @@
         /* Mobile Responsive Styles */
         @media screen and (max-width: 480px) {
             .chat-assist-widget .chat-window {
-                width: 100%;
-                max-width: 100vw;
-                height: calc(100 * var(--vh, 1vh));
-                max-height: calc(100 * var(--vh, 1vh));
-                top: 0;
-                bottom: 0;
-                left: 0 !important;
-                right: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                height: 100dvh !important;
+                max-height: 100dvh !important;
+                width: 100vw !important;
+                top: 0; bottom: 0; left: 0; right: 0;
                 border-radius: 0;
-                border-left: none;
-                border-right: none;
-                border-bottom: none;
-            }
-            
-            /* Prefer dynamic viewport on modern browsers to avoid iOS shrink issues */
-            @supports (height: 100dvh) {
-                .chat-assist-widget .chat-window {
-                    height: 100dvh;
-                    max-height: 100dvh;
-                }
-            }
-            
-            .chat-assist-widget .chat-controls {
-                position: absolute;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+                border: none;
                 background: var(--chat-color-surface);
+                z-index: 2147483647 !important;
             }
-
+            .chat-assist-widget .chat-header {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+            .chat-assist-widget .chat-body {
+                display: flex !important;
+                flex-direction: column;
+                height: 100%;
+                min-height: 0;
+                position: relative;
+                overflow: hidden;
+                flex: 1 1 0;
+            }
+            .chat-assist-widget .chat-messages {
+                flex: 1 1 0;
+                min-height: 0;
+                overflow-y: auto;
+                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--keyboard-offset, 0px) + 16px) !important;
+            }
+            .chat-assist-widget .chat-controls {
+                position: sticky;
+                bottom: 0;
+                z-index: 11;
+                background: var(--chat-color-surface);
+                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--keyboard-offset, 0px) + 8px) !important;
+            }
             .chat-assist-widget .chat-window.right-side,
             .chat-assist-widget .chat-window.left-side {
                 left: 0;
@@ -1109,190 +1117,20 @@
         }
     }
     
-    // Align chat window to the current visual viewport height (without changing position)
-    function alignToVisualViewport() {
-        if (!isMobileView() || !window.visualViewport) return;
-        const vh = window.visualViewport.height * 0.01;
-        document.documentElement.style.setProperty('--vh', vh + 'px');
-    }
-    function resetVisualViewportAlignment() {
-        // No-op: we rely on CSS using --vh, nothing to reset on the element
-    }
-    
-    // Precisely size the messages area to fill the space between header and controls
-    function resizeMessagesArea() {
-        const isMobile = isMobileView();
-        const messagesEl = chatWindow.querySelector('.chat-messages');
-        const headerEl = chatWindow.querySelector('.chat-header');
-        const controlsEl = chatWindow.querySelector('.chat-controls');
-        const footerEl = chatWindow.querySelector('.chat-footer');
-        if (!messagesEl || !headerEl || !controlsEl) return;
-        const windowHeight = chatWindow.clientHeight;
-        const headerH = headerEl.getBoundingClientRect().height || 0;
-        const controlsH = controlsEl.getBoundingClientRect().height || 0;
-        const footerH = footerEl ? footerEl.getBoundingClientRect().height : 0;
-        const verticalPadding = 0;
-        const available = Math.max(0, windowHeight - headerH - controlsH - footerH - verticalPadding);
-        // Apply sizing only on mobile or when explicitly needed
-        if (isMobile) {
-            messagesEl.style.height = available + 'px';
-            messagesEl.style.maxHeight = available + 'px';
-            messagesEl.style.overflowY = 'auto';
-        } else {
-            // Reset on desktop to let CSS handle it
-            messagesEl.style.height = '';
-            messagesEl.style.maxHeight = '';
-            messagesEl.style.overflowY = '';
-        }
-    }
-    
-    // Ensure input stays above keyboard by padding the controls and messages
-    function updateKeyboardOverlapPadding() {
-        if (!isMobileView() || !window.visualViewport) return;
-        const vv = window.visualViewport;
-        const overlap = Math.max(0, (window.innerHeight - (vv.height + vv.offsetTop)));
-        const controlsEl = chatWindow.querySelector('.chat-controls');
-        const messagesEl = chatWindow.querySelector('.chat-messages');
-        if (controlsEl) {
-            controlsEl.style.bottom = overlap + 'px';
-        }
-        if (messagesEl) {
-            messagesEl.style.paddingBottom = (12 + overlap) + 'px';
-        }
-    }
-    
-    // Set initial viewport height
-    setViewportHeight();
-    
-    // Update on resize and orientation change
-    let resizeTimeout;
-    function handleResize() {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            setViewportHeight();
-        }, 100);
-    }
-    
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', () => {
-        setTimeout(setViewportHeight, 200);
-    });
-    
-    // Use visual viewport API for better keyboard detection
+    // Modern, robust keyboard detection: only patch --keyboard-offset
     if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', handleResize);
-        window.visualViewport.addEventListener('scroll', () => {
-            // Prevent unwanted scrolling when keyboard appears
-            if (isMobileView() && window.visualViewport.height < window.innerHeight) {
-                // Keyboard is likely visible
-                setViewportHeight();
-                // Keep conversation pinned only if the user is already at the bottom
-                const msgContainer = chatWindow.querySelector('.chat-messages');
-                if (isNearBottom(msgContainer)) {
-                    scrollMessagesToBottom();
-                }
-                resizeMessagesArea();
-                updateKeyboardOverlapPadding();
-            } else {
-                // When keyboard closes, restore default alignment
-                const controlsEl = chatWindow.querySelector('.chat-controls');
-                const messagesEl = chatWindow.querySelector('.chat-messages');
-                if (controlsEl) controlsEl.style.marginBottom = '';
-                if (messagesEl) messagesEl.style.paddingBottom = '';
-            }
-        });
-        // Also realign on resize events generally
-        window.visualViewport.addEventListener('resize', () => {
-            if (keyboardVisible && isMobileView()) {
-                updateKeyboardOverlapPadding();
-            }
-        });
-    }
-    
-    function handleTextareaFocus() {
-        if (!isMobileView()) return;
-        keyboardVisible = true;
-        lastViewportHeight = window.innerHeight;
-        // Capture the initial viewport height once per open to keep overlay full-screen
-        if (!initialViewportPx || initialViewportPx < 300) {
-            initialViewportPx = Math.max(window.innerHeight, window.visualViewport?.height || 0);
+      window.visualViewport.addEventListener('resize', () => {
+        if (isMobileView()) {
+          const vv = window.visualViewport;
+          const offset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+          document.documentElement.style.setProperty('--keyboard-offset', offset + 'px');
         }
-        clearTimeout(blurTimeout);
-        // Small delay to let keyboard appear
-        focusTimeout = setTimeout(() => {
-            // Use current visual viewport height so layout matches available space above keyboard
-            setViewportHeight();
-            chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
-            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
-            // Ensure the messages area exactly fits the remaining space
-            resizeMessagesArea();
-            updateKeyboardOverlapPadding();
-            // Scroll only if the user is already near the bottom to avoid jumps
-            const msgContainer = chatWindow.querySelector('.chat-messages');
-            if (isNearBottom(msgContainer)) {
-                setTimeout(() => scrollMessagesToBottom(true), 100);
-            }
-        }, 300);
+      });
     }
-    
-    function handleTextareaBlur() {
-        if (!isMobileView()) return;
-        keyboardVisible = false;
-        clearTimeout(focusTimeout);
-        // Delay to ensure keyboard is fully closed
-        blurTimeout = setTimeout(() => {
-            // Restore responsive height after keyboard hides
-            chatWindow.style.height = '100%';
-            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
-            setViewportHeight();
-            adjustChatWindowPosition();
-            resizeMessagesArea();
-            const controlsEl = chatWindow.querySelector('.chat-controls');
-            const messagesEl = chatWindow.querySelector('.chat-messages');
-            if (controlsEl) controlsEl.style.bottom = '';
-            if (messagesEl) messagesEl.style.paddingBottom = '';
-            // Ensure controls are visible and properly positioned
-            const controls = chatWindow.querySelector('.chat-controls');
-            if (controls) {
-                // Force a reflow to ensure sticky positioning recalculates
-                void controls.offsetHeight;
-            }
-        }, 300);
-    }
-
-    // Get DOM elements
-    const startChatButton = chatWindow.querySelector('.chat-start-btn');
-    const chatBody = chatWindow.querySelector('.chat-body');
-    const messagesContainer = chatWindow.querySelector('.chat-messages');
-    const messageTextarea = chatWindow.querySelector('.chat-textarea');
-    const sendButton = chatWindow.querySelector('.chat-submit');
-    
-    // Registration form elements
-    const registrationForm = chatWindow.querySelector('.registration-form');
-    const userRegistration = chatWindow.querySelector('.user-registration');
-    const chatWelcome = chatWindow.querySelector('.chat-welcome');
-    const nameInput = chatWindow.querySelector('#chat-user-name');
-    const emailInput = chatWindow.querySelector('#chat-user-email');
-    const termsCheckbox = chatWindow.querySelector('#chat-terms-checkbox');
-    const nameError = chatWindow.querySelector('#name-error');
-    const emailError = chatWindow.querySelector('#email-error');
-
-    // Helper function to generate unique session ID
-    function createSessionId() {
-        return crypto.randomUUID();
-    }
-
-    // Create typing indicator element
-    function createTypingIndicator() {
-        const indicator = document.createElement('div');
-        indicator.className = 'typing-indicator';
-        indicator.innerHTML = `
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-        `;
-        return indicator;
-    }
+    // On blur (anywhere in chat), restore keybaord offset
+    if (nameInput) nameInput.addEventListener('blur', () => document.documentElement.style.setProperty('--keyboard-offset','0px'));
+    if (emailInput) emailInput.addEventListener('blur', () => document.documentElement.style.setProperty('--keyboard-offset','0px'));
+    if (messageTextarea) messageTextarea.addEventListener('blur', () => document.documentElement.style.setProperty('--keyboard-offset','0px'));
     
     // Utility: keep messages scrolled to the latest entry
     function scrollMessagesToBottom(smooth = false) {
@@ -1415,8 +1253,6 @@
                 chatWelcome.style.setProperty('display', 'none', 'important');
             }
             // After switching screens, keep the thread in view
-            resizeMessagesArea();
-            scrollMessagesToBottom();
             
             // Show typing indicator
             const typingIndicator = createTypingIndicator();
