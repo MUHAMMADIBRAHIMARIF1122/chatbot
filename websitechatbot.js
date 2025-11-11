@@ -1217,7 +1217,7 @@
                 setViewportHeight();
                 // Keep conversation pinned only if the user is already at the bottom
                 const msgContainer = chatWindow.querySelector('.chat-messages');
-                if (isNearBottom(msgContainer)) {
+                if (isNearBottom(msgContainer) || widgetRoot.classList.contains('ios')) {
                     scrollMessagesToBottom();
                 }
                 resizeMessagesArea();
@@ -1258,7 +1258,7 @@
             updateKeyboardOverlapPadding();
             // Scroll only if the user is already near the bottom to avoid jumps
             const msgContainer = chatWindow.querySelector('.chat-messages');
-            if (isNearBottom(msgContainer)) {
+            if (isNearBottom(msgContainer) || widgetRoot.classList.contains('ios')) {
                 setTimeout(() => scrollMessagesToBottom(true), 100);
             }
         }, 300);
