@@ -888,7 +888,7 @@
                 text: '',
                 link: ''
             },
-            termsCheckboxLabel: 'Agree to terms & conditions'
+            termsCheckboxLabel: 'I agree to the chatbot\'s terms and conditions.'
         },
         style: {
             primaryColor: '#10b981', // Green
@@ -1022,17 +1022,14 @@
 
     // Fix mobile viewport height issue (for mobile browsers with dynamic viewport)
     function setViewportHeight() {
-        let vh = window.innerHeight * 0.01;
-        // Use visual viewport if available (better for mobile keyboards)
-        if (window.visualViewport) {
-            vh = window.visualViewport.height * 0.01;
-        }
+        // If the keyboard is visible, do not shrink the chat window height;
+        // keep the previously captured height so the UI doesn't "split".
+        if (keyboardVisible) return;
+        const visualVp = window.visualViewport?.height || 0;
+        const base = Math.max(window.innerHeight, visualVp);
+        const vh = base * 0.01;
         document.documentElement.style.setProperty('--vh', vh + 'px');
-        
-        // Ensure chat window stays properly positioned
-        if (chatWindow.classList.contains('visible')) {
-            adjustChatWindowPosition();
-        }
+        if (chatWindow.classList.contains('visible')) adjustChatWindowPosition();
     }
     
     // Adjust chat window position based on viewport
@@ -1050,6 +1047,13 @@
             chatWindow.style.maxHeight = '';
         }
     }
+    
+    // Track mobile keyboard and initial viewport height to freeze layout while focusing inputs
+    let keyboardVisible = false;
+    let initialViewportPx = Math.max(window.innerHeight, window.visualViewport?.height || 0);
+    let lastViewportHeight = window.innerHeight;
+    let focusTimeout;
+    let blurTimeout;
     
     // Set initial viewport height
     setViewportHeight();
@@ -1080,19 +1084,19 @@
         });
     }
     
-    // Handle focus/blur on textarea to manage keyboard visibility
-    let keyboardVisible = false;
-    let lastViewportHeight = window.innerHeight;
-    let focusTimeout;
-    let blurTimeout;
-    
     function handleTextareaFocus() {
         keyboardVisible = true;
         lastViewportHeight = window.innerHeight;
+        // Capture the initial viewport height once per open to keep overlay full-screen
+        if (!initialViewportPx || initialViewportPx < 300) {
+            initialViewportPx = Math.max(window.innerHeight, window.visualViewport?.height || 0);
+        }
         clearTimeout(blurTimeout);
         // Small delay to let keyboard appear
         focusTimeout = setTimeout(() => {
-            setViewportHeight();
+            // Freeze the chat window height so it doesn't shrink with the keyboard
+            chatWindow.style.height = initialViewportPx + 'px';
+            chatWindow.style.maxHeight = initialViewportPx + 'px';
             // Scroll to bottom of messages if needed
             const msgContainer = chatWindow.querySelector('.chat-messages');
             if (msgContainer) {
@@ -1108,6 +1112,9 @@
         clearTimeout(focusTimeout);
         // Delay to ensure keyboard is fully closed
         blurTimeout = setTimeout(() => {
+            // Restore responsive height after keyboard hides
+            chatWindow.style.height = '100%';
+            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             setViewportHeight();
             adjustChatWindowPosition();
             // Ensure controls are visible and properly positioned
@@ -1746,6 +1753,8 @@
         if (isOpening) {
             // When opening, reset to welcome screen if not registered
             resetChatToWelcome();
+            // Capture the viewport height at open to use while keyboard is visible
+            initialViewportPx = Math.max(window.innerHeight, window.visualViewport?.height || 0);
             // Ensure proper positioning
             setTimeout(() => {
                 setViewportHeight();
