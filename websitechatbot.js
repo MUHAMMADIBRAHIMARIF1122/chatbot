@@ -216,6 +216,7 @@
             gap: 12px;
             -webkit-overflow-scrolling: touch;
             min-height: 0;
+            overscroll-behavior: contain;
         }
 
         .chat-assist-widget .chat-messages::-webkit-scrollbar {
@@ -1190,6 +1191,27 @@
         }
     }
     
+    // On iOS, the visual viewport can settle over 200-400ms. Keep anchoring during that time.
+    let keyboardAnchorRaf = 0;
+    function startKeyboardAnchorLoop() {
+        if (!widgetRoot.classList.contains('ios')) return;
+        const start = performance.now();
+        cancelAnimationFrame(keyboardAnchorRaf);
+        const step = () => {
+            // Run for ~450ms or while keyboardVisible
+            const elapsed = performance.now() - start;
+            updateKeyboardOverlapPadding();
+            scrollMessagesToBottom();
+            if (keyboardVisible && elapsed < 450) {
+                keyboardAnchorRaf = requestAnimationFrame(step);
+            }
+        };
+        keyboardAnchorRaf = requestAnimationFrame(step);
+    }
+    function stopKeyboardAnchorLoop() {
+        cancelAnimationFrame(keyboardAnchorRaf);
+    }
+    
     // Set initial viewport height
     setViewportHeight();
     
@@ -1256,6 +1278,7 @@
             // Ensure the messages area exactly fits the remaining space
             resizeMessagesArea();
             updateKeyboardOverlapPadding();
+            startKeyboardAnchorLoop();
             // Scroll only if the user is already near the bottom to avoid jumps
             const msgContainer = chatWindow.querySelector('.chat-messages');
             if (isNearBottom(msgContainer) || widgetRoot.classList.contains('ios')) {
@@ -1280,6 +1303,7 @@
             const messagesEl = chatWindow.querySelector('.chat-messages');
             if (controlsEl) controlsEl.style.bottom = '';
             if (messagesEl) messagesEl.style.paddingBottom = '';
+            stopKeyboardAnchorLoop();
             // Ensure controls are visible and properly positioned
             const controls = chatWindow.querySelector('.chat-controls');
             if (controls) {
