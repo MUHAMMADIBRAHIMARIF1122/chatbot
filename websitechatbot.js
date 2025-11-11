@@ -315,6 +315,9 @@
             gap: 8px;
             flex-shrink: 0;
             z-index: 10;
+            position: sticky;
+            bottom: 0;
+            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
         }
 
         .chat-assist-widget .chat-textarea {
@@ -641,6 +644,13 @@
                 border-left: none;
                 border-right: none;
                 border-bottom: none;
+            }
+            
+            .chat-assist-widget .chat-controls {
+                position: sticky;
+                bottom: 0;
+                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+                background: var(--chat-color-surface);
             }
 
             .chat-assist-widget .chat-window.right-side,
@@ -1074,31 +1084,14 @@
         document.body.style.overscrollBehavior = '';
     }
     
-    // Align chat window to the current visual viewport (fixes iOS 15-20px jump)
+    // Align chat window to the current visual viewport height (without changing position)
     function alignToVisualViewport() {
         if (!isMobileView() || !window.visualViewport) return;
-        if (!chatWindow.classList.contains('visible')) return;
-        const vv = window.visualViewport;
-        // Position the chat window to exactly match the visual viewport
-        chatWindow.style.position = 'fixed';
-        chatWindow.style.top = vv.offsetTop + 'px';
-        chatWindow.style.left = vv.offsetLeft + 'px';
-        chatWindow.style.right = '';
-        chatWindow.style.bottom = '';
-        chatWindow.style.width = vv.width + 'px';
-        chatWindow.style.height = vv.height + 'px';
-        chatWindow.style.maxHeight = vv.height + 'px';
+        const vh = window.visualViewport.height * 0.01;
+        document.documentElement.style.setProperty('--vh', vh + 'px');
     }
     function resetVisualViewportAlignment() {
-        // Restore defaults controlled by CSS/other logic
-        chatWindow.style.top = '';
-        chatWindow.style.left = '';
-        chatWindow.style.right = '';
-        chatWindow.style.bottom = '';
-        chatWindow.style.width = '';
-        chatWindow.style.height = '';
-        chatWindow.style.maxHeight = '';
-        chatWindow.style.position = '';
+        // No-op: we rely on CSS using --vh, nothing to reset on the element
     }
     
     // Precisely size the messages area to fill the space between header and controls
@@ -1186,7 +1179,6 @@
         focusTimeout = setTimeout(() => {
             // Use current visual viewport height so layout matches available space above keyboard
             setViewportHeight();
-            alignToVisualViewport();
             chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             // Ensure the messages area exactly fits the remaining space
@@ -1206,7 +1198,6 @@
         // Delay to ensure keyboard is fully closed
         blurTimeout = setTimeout(() => {
             // Restore responsive height after keyboard hides
-            resetVisualViewportAlignment();
             chatWindow.style.height = '100%';
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             setViewportHeight();
