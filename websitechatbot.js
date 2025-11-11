@@ -652,12 +652,35 @@
                 }
             }
             
+            /* iOS-specific hardening */
+            .chat-assist-widget.ios .chat-window {
+                position: fixed;
+                inset: 0;
+                height: 100dvh;
+                max-height: 100dvh;
+                background: var(--chat-color-surface);
+            }
+            @supports (-webkit-touch-callout: none) {
+                .chat-assist-widget.ios .chat-window {
+                    height: -webkit-fill-available;
+                    max-height: -webkit-fill-available;
+                }
+            }
+            
             .chat-assist-widget .chat-controls {
                 position: absolute;
                 left: 0;
                 right: 0;
                 bottom: 0;
                 padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+                background: var(--chat-color-surface);
+            }
+            .chat-assist-widget.ios .chat-controls {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 100002;
                 background: var(--chat-color-surface);
             }
 
@@ -944,6 +967,12 @@
     // Create widget DOM structure
     const widgetRoot = document.createElement('div');
     widgetRoot.className = 'chat-assist-widget';
+    
+    // Detect iOS to enable platform-specific fixes
+    const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent);
+    if (isIOS) {
+        widgetRoot.classList.add('ios');
+    }
     
     // Apply custom colors
     widgetRoot.style.setProperty('--chat-widget-primary', settings.style.primaryColor);
