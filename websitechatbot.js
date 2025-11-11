@@ -1093,8 +1093,11 @@
             if (isMobileView() && window.visualViewport.height < window.innerHeight) {
                 // Keyboard is likely visible
                 setViewportHeight();
-                // Keep conversation pinned to the latest messages while keyboard animates
-                scrollMessagesToBottom();
+                // Keep conversation pinned only if the user is already at the bottom
+                const msgContainer = chatWindow.querySelector('.chat-messages');
+                if (isNearBottom(msgContainer)) {
+                    scrollMessagesToBottom();
+                }
             }
         });
     }
@@ -1114,12 +1117,10 @@
             setViewportHeight();
             chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
-            // Scroll to bottom of messages if needed
-            setTimeout(() => scrollMessagesToBottom(true), 100);
-            // Keep focused element centered to avoid misalignment
-            const active = document.activeElement;
-            if (active && typeof active.scrollIntoView === 'function') {
-                active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            // Scroll only if the user is already near the bottom to avoid jumps
+            const msgContainer = chatWindow.querySelector('.chat-messages');
+            if (isNearBottom(msgContainer)) {
+                setTimeout(() => scrollMessagesToBottom(true), 100);
             }
         }, 300);
     }
@@ -1184,6 +1185,13 @@
         if (!msgContainer) return;
         const behavior = smooth ? 'smooth' : 'auto';
         msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior });
+    }
+    
+    // Utility: detect if user is already viewing the latest messages
+    function isNearBottom(container, threshold = 60) {
+        if (!container) return true;
+        const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+        return distanceFromBottom <= threshold;
     }
 
     // Function to convert URLs in text to clickable links
@@ -1722,7 +1730,12 @@
         messageTextarea.addEventListener('input', autoResizeTextarea);
         // While typing on mobile, ensure the latest messages are visible
         messageTextarea.addEventListener('input', () => {
-            if (isMobileView()) scrollMessagesToBottom();
+            if (isMobileView()) {
+                const msgContainer = chatWindow.querySelector('.chat-messages');
+                if (isNearBottom(msgContainer)) {
+                    scrollMessagesToBottom();
+                }
+            }
         });
         
         messageTextarea.addEventListener('keypress', (event) => {
@@ -1793,7 +1806,10 @@
             setTimeout(() => {
                 setViewportHeight();
                 adjustChatWindowPosition();
-                scrollMessagesToBottom();
+                const msgContainer = chatWindow.querySelector('.chat-messages');
+                if (isNearBottom(msgContainer)) {
+                    scrollMessagesToBottom();
+                }
             }, 100);
         } else {
             unlockPageScroll();
