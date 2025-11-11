@@ -631,8 +631,9 @@
             .chat-assist-widget .chat-window {
                 width: 100%;
                 max-width: 100vw;
-                height: 100%;
+                height: calc(100 * var(--vh, 1vh));
                 max-height: calc(100 * var(--vh, 1vh));
+                top: 0;
                 bottom: 0;
                 left: 0 !important;
                 right: 0 !important;
@@ -1040,12 +1041,14 @@
         const isMobile = isMobileView();
         if (isMobile) {
             // On mobile, ensure window is at bottom and full height
+            chatWindow.style.top = '0';
             chatWindow.style.bottom = '0';
             chatWindow.style.height = '100%';
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
         } else {
             // On desktop, maintain original CSS positioning
             chatWindow.style.bottom = '';
+            chatWindow.style.top = '';
             chatWindow.style.height = '';
             chatWindow.style.maxHeight = '';
         }
@@ -1146,6 +1149,7 @@
         focusTimeout = setTimeout(() => {
             // Use current visual viewport height so layout matches available space above keyboard
             setViewportHeight();
+            chatWindow.style.top = '0';
             chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             // Ensure the messages area exactly fits the remaining space
@@ -1165,6 +1169,7 @@
         // Delay to ensure keyboard is fully closed
         blurTimeout = setTimeout(() => {
             // Restore responsive height after keyboard hides
+            chatWindow.style.top = '';
             chatWindow.style.height = '100%';
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             setViewportHeight();
