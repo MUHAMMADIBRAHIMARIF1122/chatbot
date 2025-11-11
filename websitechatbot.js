@@ -646,6 +646,14 @@
                 border-bottom: none;
             }
             
+            /* Prefer dynamic viewport on modern browsers to avoid iOS shrink issues */
+            @supports (height: 100dvh) {
+                .chat-assist-widget .chat-window {
+                    height: 100dvh;
+                    max-height: 100dvh;
+                }
+            }
+            
             .chat-assist-widget .chat-controls {
                 position: sticky;
                 bottom: 0;
@@ -1121,6 +1129,21 @@
         }
     }
     
+    // Ensure input stays above keyboard by padding the controls and messages
+    function updateKeyboardOverlapPadding() {
+        if (!isMobileView() || !window.visualViewport) return;
+        const vv = window.visualViewport;
+        const overlap = Math.max(0, (window.innerHeight - (vv.height + vv.offsetTop)));
+        const controlsEl = chatWindow.querySelector('.chat-controls');
+        const messagesEl = chatWindow.querySelector('.chat-messages');
+        if (controlsEl) {
+            controlsEl.style.marginBottom = overlap + 'px';
+        }
+        if (messagesEl) {
+            messagesEl.style.paddingBottom = (12 + overlap) + 'px';
+        }
+    }
+    
     // Set initial viewport height
     setViewportHeight();
     
@@ -1152,16 +1175,19 @@
                     scrollMessagesToBottom();
                 }
                 resizeMessagesArea();
-                alignToVisualViewport();
+                updateKeyboardOverlapPadding();
             } else {
                 // When keyboard closes, restore default alignment
-                resetVisualViewportAlignment();
+                const controlsEl = chatWindow.querySelector('.chat-controls');
+                const messagesEl = chatWindow.querySelector('.chat-messages');
+                if (controlsEl) controlsEl.style.marginBottom = '';
+                if (messagesEl) messagesEl.style.paddingBottom = '';
             }
         });
         // Also realign on resize events generally
         window.visualViewport.addEventListener('resize', () => {
             if (keyboardVisible && isMobileView()) {
-                alignToVisualViewport();
+                updateKeyboardOverlapPadding();
             }
         });
     }
@@ -1183,6 +1209,7 @@
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             // Ensure the messages area exactly fits the remaining space
             resizeMessagesArea();
+            updateKeyboardOverlapPadding();
             // Scroll only if the user is already near the bottom to avoid jumps
             const msgContainer = chatWindow.querySelector('.chat-messages');
             if (isNearBottom(msgContainer)) {
@@ -1203,6 +1230,10 @@
             setViewportHeight();
             adjustChatWindowPosition();
             resizeMessagesArea();
+            const controlsEl = chatWindow.querySelector('.chat-controls');
+            const messagesEl = chatWindow.querySelector('.chat-messages');
+            if (controlsEl) controlsEl.style.marginBottom = '';
+            if (messagesEl) messagesEl.style.paddingBottom = '';
             // Ensure controls are visible and properly positioned
             const controls = chatWindow.querySelector('.chat-controls');
             if (controls) {
