@@ -396,7 +396,7 @@
             border: none;
             cursor: pointer;
             box-shadow: var(--chat-shadow-md);
-            z-index: 999;
+            z-index: 2147483647 !important;
             transition: var(--chat-transition);
             display: flex;
             align-items: center;
@@ -405,6 +405,7 @@
             max-width: calc(100vw - 40px);
             touch-action: manipulation;
             box-sizing: border-box;
+            pointer-events: auto !important;
         }
 
         .chat-assist-widget .chat-launcher.right-side {
