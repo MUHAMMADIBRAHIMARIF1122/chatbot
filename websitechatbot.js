@@ -1020,11 +1020,14 @@
     widgetRoot.appendChild(launchButton);
     document.body.appendChild(widgetRoot);
 
+    // View helpers
+    const isMobileView = () => window.innerWidth <= 480;
+    
     // Fix mobile viewport height issue (for mobile browsers with dynamic viewport)
     function setViewportHeight() {
         // If the keyboard is visible, do not shrink the chat window height;
         // keep the previously captured height so the UI doesn't "split".
-        if (keyboardVisible) return;
+        if (keyboardVisible && isMobileView()) return;
         const visualVp = window.visualViewport?.height || 0;
         const base = Math.max(window.innerHeight, visualVp);
         const vh = base * 0.01;
@@ -1034,7 +1037,7 @@
     
     // Adjust chat window position based on viewport
     function adjustChatWindowPosition() {
-        const isMobile = window.innerWidth <= 480;
+        const isMobile = isMobileView();
         if (isMobile) {
             // On mobile, ensure window is at bottom and full height
             chatWindow.style.bottom = '0';
@@ -1054,6 +1057,19 @@
     let lastViewportHeight = window.innerHeight;
     let focusTimeout;
     let blurTimeout;
+    
+    // Prevent background scroll while chat is open on mobile
+    function lockPageScroll() {
+        if (!isMobileView()) return;
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        document.body.style.overscrollBehavior = 'contain';
+    }
+    function unlockPageScroll() {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+        document.body.style.overscrollBehavior = '';
+    }
     
     // Set initial viewport height
     setViewportHeight();
@@ -1077,7 +1093,7 @@
         window.visualViewport.addEventListener('resize', handleResize);
         window.visualViewport.addEventListener('scroll', () => {
             // Prevent unwanted scrolling when keyboard appears
-            if (window.visualViewport.height < window.innerHeight) {
+            if (isMobileView() && window.visualViewport.height < window.innerHeight) {
                 // Keyboard is likely visible
                 setViewportHeight();
             }
@@ -1085,6 +1101,7 @@
     }
     
     function handleTextareaFocus() {
+        if (!isMobileView()) return;
         keyboardVisible = true;
         lastViewportHeight = window.innerHeight;
         // Capture the initial viewport height once per open to keep overlay full-screen
@@ -1104,10 +1121,16 @@
                     msgContainer.scrollTop = msgContainer.scrollHeight;
                 }, 100);
             }
+            // Keep focused element centered to avoid misalignment
+            const active = document.activeElement;
+            if (active && typeof active.scrollIntoView === 'function') {
+                active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }
         }, 300);
     }
     
     function handleTextareaBlur() {
+        if (!isMobileView()) return;
         keyboardVisible = false;
         clearTimeout(focusTimeout);
         // Delay to ensure keyboard is fully closed
@@ -1755,11 +1778,15 @@
             resetChatToWelcome();
             // Capture the viewport height at open to use while keyboard is visible
             initialViewportPx = Math.max(window.innerHeight, window.visualViewport?.height || 0);
+            // Prevent background page scroll on mobile
+            lockPageScroll();
             // Ensure proper positioning
             setTimeout(() => {
                 setViewportHeight();
                 adjustChatWindowPosition();
             }, 100);
+        } else {
+            unlockPageScroll();
         }
     };
     
@@ -1773,6 +1800,7 @@
             chatWindow.classList.remove('visible');
             // Reset to welcome screen when closing if not registered
             resetChatToWelcome();
+            unlockPageScroll();
         });
         // Add touch support for mobile
         button.addEventListener('touchend', (e) => {
@@ -1780,6 +1808,7 @@
             e.stopPropagation();
             chatWindow.classList.remove('visible');
             resetChatToWelcome();
+            unlockPageScroll();
         });
     });
 })();
