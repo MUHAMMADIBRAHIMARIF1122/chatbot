@@ -1741,21 +1741,13 @@
         }
     }
     
-    const handleLaunchButtonClick = (e) => {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        const isOpening = !chatWindow.classList.contains('visible');
-        chatWindow.classList.toggle('visible');
-        if (isOpening) {
-            // When opening, reset to welcome screen if not registered
+    // Public helpers to control the chat programmatically
+    function openChat() {
+        if (!chatWindow.classList.contains('visible')) {
+            chatWindow.classList.add('visible');
             resetChatToWelcome();
-            // Capture the viewport height at open to use while keyboard is visible
             initialViewportPx = Math.max(window.innerHeight, window.visualViewport?.height || 0);
-            // Prevent background page scroll on mobile
             lockPageScroll();
-            // Ensure proper positioning
             setTimeout(() => {
                 setViewportHeight();
                 adjustChatWindowPosition();
@@ -1765,9 +1757,28 @@
                     scrollMessagesToBottom();
                 }
             }, 100);
-        } else {
-            unlockPageScroll();
         }
+    }
+    function closeChat() {
+        if (chatWindow.classList.contains('visible')) {
+            chatWindow.classList.remove('visible');
+            resetChatToWelcome();
+            unlockPageScroll();
+            launchButton.setAttribute('aria-expanded', 'false');
+        }
+    }
+    function toggleChat() {
+        if (chatWindow.classList.contains('visible')) closeChat(); else openChat();
+    }
+    // Expose a tiny API for external CTAs
+    window.ChatWidgetAPI = { open: openChat, close: closeChat, toggle: toggleChat };
+
+    const handleLaunchButtonClick = (e) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        toggleChat();
     };
     // Robust event binding for launcher: capture phase and multiple inputs
     launchButton.addEventListener('click', handleLaunchButtonClick, { capture: true });
@@ -1785,6 +1796,25 @@
         }
     };
     launchButton.addEventListener('keydown', onLauncherKey, { capture: true });
+
+    // Delegate clicks from any external CTA: data-chat-launcher or matching text
+    document.addEventListener('click', (event) => {
+        const path = event.composedPath ? event.composedPath() : (function(n, acc=[]){ while(n){ acc.push(n); n = n.parentNode; } return acc; })(event.target);
+        for (const el of path) {
+            if (!el || !el.tagName) continue;
+            if (el.hasAttribute && el.hasAttribute('data-chat-launcher')) {
+                event.preventDefault();
+                toggleChat();
+                return;
+            }
+            const text = (el.textContent || '').trim().toLowerCase();
+            if (text && (text.includes('speak with team') || text.includes('chat') || text.includes('message us'))) {
+                event.preventDefault();
+                toggleChat();
+                return;
+            }
+        }
+    }, { capture: true });
 
     // Close button functionality
     const closeButtons = chatWindow.querySelectorAll('.chat-close-btn');
