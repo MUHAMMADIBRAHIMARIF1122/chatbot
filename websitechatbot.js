@@ -888,7 +888,7 @@
                 text: '',
                 link: ''
             },
-            termsCheckboxLabel: 'I agree to the chatbot\'s terms and conditions.'
+            termsCheckboxLabel: 'Agree to terms & conditions'
         },
         style: {
             primaryColor: '#10b981', // Green
@@ -1025,9 +1025,6 @@
     
     // Fix mobile viewport height issue (for mobile browsers with dynamic viewport)
     function setViewportHeight() {
-        // If the keyboard is visible, do not shrink the chat window height;
-        // keep the previously captured height so the UI doesn't "split".
-        if (keyboardVisible && isMobileView()) return;
         const visualVp = window.visualViewport?.height || 0;
         const base = Math.max(window.innerHeight, visualVp);
         const vh = base * 0.01;
@@ -1113,9 +1110,10 @@
         clearTimeout(blurTimeout);
         // Small delay to let keyboard appear
         focusTimeout = setTimeout(() => {
-            // Freeze the chat window height so it doesn't shrink with the keyboard
-            chatWindow.style.height = initialViewportPx + 'px';
-            chatWindow.style.maxHeight = initialViewportPx + 'px';
+            // Use current visual viewport height so layout matches available space above keyboard
+            setViewportHeight();
+            chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
+            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             // Scroll to bottom of messages if needed
             setTimeout(() => scrollMessagesToBottom(true), 100);
             // Keep focused element centered to avoid misalignment
