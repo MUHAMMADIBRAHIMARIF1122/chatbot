@@ -36,7 +36,7 @@
         .chat-assist-widget .chat-window {
             position: fixed;
             bottom: 90px;
-            z-index: 1000;
+            z-index: 100000;
             width: 380px;
             max-width: calc(100vw - 20px);
             height: 580px;
@@ -1082,14 +1082,31 @@
     // Prevent background scroll while chat is open on mobile
     function lockPageScroll() {
         if (!isMobileView()) return;
+        // Preserve current scroll position
+        const scrollY = window.scrollY || document.documentElement.scrollTop;
+        document.documentElement.dataset.chatScrollY = String(scrollY);
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
-        document.body.style.overscrollBehavior = 'contain';
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+        document.body.style.overscrollBehavior = 'none';
     }
     function unlockPageScroll() {
         document.documentElement.style.overflow = '';
+        const savedY = Number(document.documentElement.dataset.chatScrollY || 0);
         document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
         document.body.style.overscrollBehavior = '';
+        if (!isNaN(savedY)) {
+            window.scrollTo(0, savedY);
+        }
     }
     
     // Align chat window to the current visual viewport height (without changing position)
