@@ -1068,6 +1068,33 @@
         document.body.style.overscrollBehavior = '';
     }
     
+    // Precisely size the messages area to fill the space between header and controls
+    function resizeMessagesArea() {
+        const isMobile = isMobileView();
+        const messagesEl = chatWindow.querySelector('.chat-messages');
+        const headerEl = chatWindow.querySelector('.chat-header');
+        const controlsEl = chatWindow.querySelector('.chat-controls');
+        const footerEl = chatWindow.querySelector('.chat-footer');
+        if (!messagesEl || !headerEl || !controlsEl) return;
+        const windowHeight = chatWindow.clientHeight;
+        const headerH = headerEl.getBoundingClientRect().height || 0;
+        const controlsH = controlsEl.getBoundingClientRect().height || 0;
+        const footerH = footerEl ? footerEl.getBoundingClientRect().height : 0;
+        const verticalPadding = 0;
+        const available = Math.max(0, windowHeight - headerH - controlsH - footerH - verticalPadding);
+        // Apply sizing only on mobile or when explicitly needed
+        if (isMobile) {
+            messagesEl.style.height = available + 'px';
+            messagesEl.style.maxHeight = available + 'px';
+            messagesEl.style.overflowY = 'auto';
+        } else {
+            // Reset on desktop to let CSS handle it
+            messagesEl.style.height = '';
+            messagesEl.style.maxHeight = '';
+            messagesEl.style.overflowY = '';
+        }
+    }
+    
     // Set initial viewport height
     setViewportHeight();
     
@@ -1098,6 +1125,7 @@
                 if (isNearBottom(msgContainer)) {
                     scrollMessagesToBottom();
                 }
+                resizeMessagesArea();
             }
         });
     }
@@ -1117,6 +1145,8 @@
             setViewportHeight();
             chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
+            // Ensure the messages area exactly fits the remaining space
+            resizeMessagesArea();
             // Scroll only if the user is already near the bottom to avoid jumps
             const msgContainer = chatWindow.querySelector('.chat-messages');
             if (isNearBottom(msgContainer)) {
@@ -1136,6 +1166,7 @@
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             setViewportHeight();
             adjustChatWindowPosition();
+            resizeMessagesArea();
             // Ensure controls are visible and properly positioned
             const controls = chatWindow.querySelector('.chat-controls');
             if (controls) {
@@ -1300,6 +1331,7 @@
                 chatWelcome.style.setProperty('display', 'none', 'important');
             }
             // After switching screens, keep the thread in view
+            resizeMessagesArea();
             scrollMessagesToBottom();
             
             // Show typing indicator
@@ -1806,6 +1838,7 @@
             setTimeout(() => {
                 setViewportHeight();
                 adjustChatWindowPosition();
+                resizeMessagesArea();
                 const msgContainer = chatWindow.querySelector('.chat-messages');
                 if (isNearBottom(msgContainer)) {
                     scrollMessagesToBottom();
@@ -1842,11 +1875,17 @@
     const messagesEl = chatWindow.querySelector('.chat-messages');
     if (messagesEl) {
         const observer = new ResizeObserver(() => {
-            if (keyboardVisible && isMobileView()) scrollMessagesToBottom();
+            if (keyboardVisible && isMobileView()) {
+                resizeMessagesArea();
+                if (isNearBottom(messagesEl)) scrollMessagesToBottom();
+            }
         });
         observer.observe(messagesEl);
         const mo = new MutationObserver(() => {
-            if (keyboardVisible && isMobileView()) scrollMessagesToBottom();
+            if (keyboardVisible && isMobileView()) {
+                resizeMessagesArea();
+                if (isNearBottom(messagesEl)) scrollMessagesToBottom();
+            }
         });
         mo.observe(messagesEl, { childList: true, subtree: false });
     }
