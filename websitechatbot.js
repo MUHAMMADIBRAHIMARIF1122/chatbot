@@ -244,9 +244,11 @@
             position: relative;
             white-space: pre-line;
             box-sizing: border-box;
-            overflow: visible;
-            overflow-x: hidden;
-            overflow-y: visible;
+            overflow: visible !important;
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+            max-height: none !important;
+            height: auto !important;
         }
 
         .chat-assist-widget .chat-bubble.user-bubble {
@@ -265,10 +267,11 @@
             box-shadow: var(--chat-shadow-sm);
             border: 1px solid var(--chat-color-light);
             white-space: normal;
-            overflow: visible;
-            overflow-x: hidden;
-            overflow-y: visible;
-            max-height: none;
+            overflow: visible !important;
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+            max-height: none !important;
+            height: auto !important;
         }
 
         /* Ensure first and last elements don't have extra spacing */
@@ -292,8 +295,20 @@
 
         /* Prevent any scrollbars inside chat bubbles - content should flow naturally */
         .chat-assist-widget .chat-bubble * {
+            overflow: visible !important;
+            overflow-x: hidden !important;
             overflow-y: visible !important;
             max-height: none !important;
+            height: auto !important;
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+
+        /* Specifically hide scrollbars from all elements inside bubbles */
+        .chat-assist-widget .chat-bubble *::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
 
         /* Allow horizontal overflow control for images and tables */
@@ -345,6 +360,8 @@
             margin: 0 0 8px 0;
             padding-left: 24px;
             line-height: 1.6;
+            overflow: visible !important;
+            max-height: none !important;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble ul:last-child,
@@ -395,9 +412,11 @@
             border-collapse: collapse;
             margin: 0 0 8px 0;
             font-size: 14px;
-            overflow: visible;
-            overflow-x: hidden;
+            overflow: visible !important;
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
             display: table;
+            max-height: none !important;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble table:last-child {
@@ -434,12 +453,13 @@
             background: var(--chat-color-light);
             padding: 12px;
             border-radius: var(--chat-radius-sm);
-            overflow: visible;
-            overflow-x: hidden;
-            overflow-y: visible;
+            overflow: visible !important;
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
             margin: 0 0 8px 0;
             white-space: pre-wrap;
             word-wrap: break-word;
+            max-height: none !important;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble pre:last-child {
