@@ -274,6 +274,16 @@
             margin-bottom: 0 !important;
         }
 
+        /* Ensure all content flows as a single text window - no visual separation between sections */
+        .chat-assist-widget .chat-bubble.bot-bubble > * {
+            display: block;
+        }
+
+        /* Add small spacing between consecutive block elements, but not at edges */
+        .chat-assist-widget .chat-bubble.bot-bubble > * + * {
+            margin-top: 8px;
+        }
+
         /* Style HTML elements within bot bubbles for proper formatting */
         .chat-assist-widget .chat-bubble.bot-bubble h1,
         .chat-assist-widget .chat-bubble.bot-bubble h2,
@@ -1862,9 +1872,20 @@
             // Display initial bot message as HTML (rendered formatting)
             const botMessage = document.createElement('div');
             botMessage.className = 'chat-bubble bot-bubble';
-            const messageText = Array.isArray(userInfoResponseData) ? 
-                userInfoResponseData[0].output : userInfoResponseData.output;
-            // Render HTML directly from webhook response
+            
+            // Handle both array and single object responses - combine all into one message
+            let messageText = '';
+            if (Array.isArray(userInfoResponseData)) {
+                // Combine all responses into a single message bubble
+                messageText = userInfoResponseData.map(item => {
+                    const content = item.output || item || '';
+                    return typeof content === 'string' ? content : '';
+                }).filter(Boolean).join('');
+            } else {
+                messageText = userInfoResponseData.output || userInfoResponseData || '';
+            }
+            
+            // Render HTML directly from webhook response as a single bubble
             botMessage.innerHTML = messageText;
             messagesContainer.appendChild(botMessage);
             
@@ -2047,11 +2068,23 @@
             // Remove typing indicator
             messagesContainer.removeChild(typingIndicator);
             
-            // Display bot response as HTML (rendered formatting)
+            // Display bot response as HTML (rendered formatting) - single bubble for all content
             const botMessage = document.createElement('div');
             botMessage.className = 'chat-bubble bot-bubble';
-            const responseText = Array.isArray(responseData) ? responseData[0].output : responseData.output;
-            // Render HTML directly from webhook response
+            
+            // Handle both array and single object responses - combine all into one message
+            let responseText = '';
+            if (Array.isArray(responseData)) {
+                // Combine all responses into a single message bubble
+                responseText = responseData.map(item => {
+                    const content = item.output || item || '';
+                    return typeof content === 'string' ? content : '';
+                }).filter(Boolean).join('');
+            } else {
+                responseText = responseData.output || responseData || '';
+            }
+            
+            // Render HTML directly from webhook response as a single bubble
             botMessage.innerHTML = responseText;
             messagesContainer.appendChild(botMessage);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
