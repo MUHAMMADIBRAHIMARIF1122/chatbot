@@ -244,11 +244,6 @@
             position: relative;
             white-space: pre-line;
             box-sizing: border-box;
-            overflow: visible !important;
-            overflow-x: hidden !important;
-            overflow-y: visible !important;
-            max-height: none !important;
-            height: auto !important;
         }
 
         .chat-assist-widget .chat-bubble.user-bubble {
@@ -266,209 +261,6 @@
             border-bottom-left-radius: 4px;
             box-shadow: var(--chat-shadow-sm);
             border: 1px solid var(--chat-color-light);
-            white-space: normal;
-            overflow: visible !important;
-            overflow-x: hidden !important;
-            overflow-y: visible !important;
-            max-height: none !important;
-            height: auto !important;
-        }
-
-        /* Ensure first and last elements don't have extra spacing */
-        .chat-assist-widget .chat-bubble.bot-bubble > *:first-child {
-            margin-top: 0 !important;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble > *:last-child {
-            margin-bottom: 0 !important;
-        }
-
-        /* Ensure all content flows as a single text window - no visual separation between sections */
-        .chat-assist-widget .chat-bubble.bot-bubble > * {
-            display: block;
-        }
-
-        /* Add small spacing between consecutive block elements, but not at edges */
-        .chat-assist-widget .chat-bubble.bot-bubble > * + * {
-            margin-top: 8px;
-        }
-
-        /* Prevent any scrollbars inside chat bubbles - content should flow naturally */
-        .chat-assist-widget .chat-bubble * {
-            overflow: visible !important;
-            overflow-x: hidden !important;
-            overflow-y: visible !important;
-            max-height: none !important;
-            height: auto !important;
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-        }
-
-        /* Specifically hide scrollbars from all elements inside bubbles */
-        .chat-assist-widget .chat-bubble *::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-        }
-
-        /* Allow horizontal overflow control for images and tables */
-        .chat-assist-widget .chat-bubble img {
-            overflow: visible !important;
-        }
-
-        /* Style HTML elements within bot bubbles for proper formatting */
-        .chat-assist-widget .chat-bubble.bot-bubble h1,
-        .chat-assist-widget .chat-bubble.bot-bubble h2,
-        .chat-assist-widget .chat-bubble.bot-bubble h3,
-        .chat-assist-widget .chat-bubble.bot-bubble h4,
-        .chat-assist-widget .chat-bubble.bot-bubble h5,
-        .chat-assist-widget .chat-bubble.bot-bubble h6 {
-            margin: 0 0 6px 0;
-            font-weight: 600;
-            line-height: 1.4;
-            color: var(--chat-color-text);
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble h2 {
-            font-size: 18px;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble h3 {
-            font-size: 16px;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble h1:first-child,
-        .chat-assist-widget .chat-bubble.bot-bubble h2:first-child,
-        .chat-assist-widget .chat-bubble.bot-bubble h3:first-child,
-        .chat-assist-widget .chat-bubble.bot-bubble h4:first-child,
-        .chat-assist-widget .chat-bubble.bot-bubble h5:first-child,
-        .chat-assist-widget .chat-bubble.bot-bubble h6:first-child {
-            margin-top: 0;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble p {
-            margin: 0 0 8px 0;
-            line-height: 1.6;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble p:last-child {
-            margin-bottom: 0;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble ul,
-        .chat-assist-widget .chat-bubble.bot-bubble ol {
-            margin: 0 0 8px 0;
-            padding-left: 24px;
-            line-height: 1.6;
-            overflow: visible !important;
-            max-height: none !important;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble ul:last-child,
-        .chat-assist-widget .chat-bubble.bot-bubble ol:last-child {
-            margin-bottom: 0;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble li {
-            margin: 2px 0;
-            line-height: 1.6;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble a {
-            color: var(--chat-color-primary);
-            text-decoration: underline;
-            word-break: break-all;
-            transition: var(--chat-transition);
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble a:hover {
-            color: var(--chat-color-secondary);
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble strong,
-        .chat-assist-widget .chat-bubble.bot-bubble b {
-            font-weight: 600;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble em,
-        .chat-assist-widget .chat-bubble.bot-bubble i {
-            font-style: italic;
-        }
-
-        /* Ensure HTML content doesn't overflow on mobile */
-        .chat-assist-widget .chat-bubble.bot-bubble img {
-            max-width: 100%;
-            height: auto;
-            border-radius: var(--chat-radius-sm);
-            margin: 0 0 8px 0;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble img:last-child {
-            margin-bottom: 0;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 0 0 8px 0;
-            font-size: 14px;
-            overflow: visible !important;
-            overflow-x: hidden !important;
-            overflow-y: visible !important;
-            display: table;
-            max-height: none !important;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble table:last-child {
-            margin-bottom: 0;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble table th,
-        .chat-assist-widget .chat-bubble.bot-bubble table td {
-            padding: 8px;
-            border: 1px solid var(--chat-color-border);
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble blockquote {
-            margin: 0 0 8px 0;
-            padding: 8px 12px;
-            border-left: 3px solid var(--chat-color-primary);
-            background: var(--chat-color-light);
-            border-radius: var(--chat-radius-sm);
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble blockquote:last-child {
-            margin-bottom: 0;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble code {
-            background: var(--chat-color-light);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-family: monospace;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble pre {
-            background: var(--chat-color-light);
-            padding: 12px;
-            border-radius: var(--chat-radius-sm);
-            overflow: visible !important;
-            overflow-x: hidden !important;
-            overflow-y: visible !important;
-            margin: 0 0 8px 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            max-height: none !important;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble pre:last-child {
-            margin-bottom: 0;
-        }
-
-        .chat-assist-widget .chat-bubble.bot-bubble pre code {
-            background: none;
-            padding: 0;
         }
 
         /* Typing animation */
@@ -954,98 +746,6 @@
                 font-size: 13px;
             }
 
-            /* Mobile styles for HTML elements in bot bubbles */
-            .chat-assist-widget .chat-bubble.bot-bubble h1,
-            .chat-assist-widget .chat-bubble.bot-bubble h2,
-            .chat-assist-widget .chat-bubble.bot-bubble h3,
-            .chat-assist-widget .chat-bubble.bot-bubble h4,
-            .chat-assist-widget .chat-bubble.bot-bubble h5,
-            .chat-assist-widget .chat-bubble.bot-bubble h6 {
-                margin: 0 0 5px 0;
-                font-size: 16px;
-                line-height: 1.3;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble h1:first-child,
-            .chat-assist-widget .chat-bubble.bot-bubble h2:first-child,
-            .chat-assist-widget .chat-bubble.bot-bubble h3:first-child {
-                margin-top: 0;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble h2 {
-                font-size: 16px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble h3 {
-                font-size: 15px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble p {
-                margin: 0 0 6px 0;
-                line-height: 1.5;
-                font-size: 13px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble p:last-child {
-                margin-bottom: 0;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble ul,
-            .chat-assist-widget .chat-bubble.bot-bubble ol {
-                margin: 0 0 6px 0;
-                padding-left: 20px;
-                line-height: 1.5;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble ul:last-child,
-            .chat-assist-widget .chat-bubble.bot-bubble ol:last-child {
-                margin-bottom: 0;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble li {
-                margin: 2px 0;
-                line-height: 1.5;
-                font-size: 13px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble a {
-                font-size: 13px;
-                word-break: break-all;
-            }
-
-            /* Mobile styles for additional HTML elements */
-            .chat-assist-widget .chat-bubble.bot-bubble img {
-                max-width: 100%;
-                margin: 6px 0;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble table {
-                font-size: 12px;
-                margin: 6px 0;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble table th,
-            .chat-assist-widget .chat-bubble.bot-bubble table td {
-                padding: 6px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble blockquote {
-                margin: 6px 0;
-                padding: 6px 10px;
-                font-size: 12px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble code {
-                font-size: 11px;
-                padding: 2px 4px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble pre {
-                padding: 8px;
-                margin: 6px 0;
-                font-size: 11px;
-            }
-
             .chat-assist-widget .chat-controls {
                 padding: 10px;
                 gap: 6px;
@@ -1152,53 +852,6 @@
             .chat-assist-widget .chat-bubble {
                 max-width: 92%;
                 padding: 8px 12px;
-            }
-
-            /* Small mobile styles for HTML elements in bot bubbles */
-            .chat-assist-widget .chat-bubble.bot-bubble h1,
-            .chat-assist-widget .chat-bubble.bot-bubble h2,
-            .chat-assist-widget .chat-bubble.bot-bubble h3 {
-                margin: 0 0 4px 0;
-                font-size: 15px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble h1:first-child,
-            .chat-assist-widget .chat-bubble.bot-bubble h2:first-child,
-            .chat-assist-widget .chat-bubble.bot-bubble h3:first-child {
-                margin-top: 0;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble h2 {
-                font-size: 15px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble p {
-                margin: 0 0 5px 0;
-                font-size: 12px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble p:last-child {
-                margin-bottom: 0;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble ul,
-            .chat-assist-widget .chat-bubble.bot-bubble ol {
-                margin: 0 0 5px 0;
-                padding-left: 18px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble ul:last-child,
-            .chat-assist-widget .chat-bubble.bot-bubble ol:last-child {
-                margin-bottom: 0;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble li {
-                margin: 1px 0;
-                font-size: 12px;
-            }
-
-            .chat-assist-widget .chat-bubble.bot-bubble a {
-                font-size: 12px;
             }
 
             .chat-assist-widget .chat-controls {
@@ -1911,24 +1564,12 @@
             // Remove typing indicator
             messagesContainer.removeChild(typingIndicator);
             
-            // Display initial bot message as HTML (rendered formatting)
+            // Display initial bot message with clickable links
             const botMessage = document.createElement('div');
             botMessage.className = 'chat-bubble bot-bubble';
-            
-            // Handle both array and single object responses - combine all into one message
-            let messageText = '';
-            if (Array.isArray(userInfoResponseData)) {
-                // Combine all responses into a single message bubble
-                messageText = userInfoResponseData.map(item => {
-                    const content = item.output || item || '';
-                    return typeof content === 'string' ? content : '';
-                }).filter(Boolean).join('');
-            } else {
-                messageText = userInfoResponseData.output || userInfoResponseData || '';
-            }
-            
-            // Render HTML directly from webhook response as a single bubble
-            botMessage.innerHTML = messageText;
+            const messageText = Array.isArray(userInfoResponseData) ? 
+                userInfoResponseData[0].output : userInfoResponseData.output;
+            botMessage.innerHTML = linkifyText(messageText);
             messagesContainer.appendChild(botMessage);
             
             // Add sample questions if configured
@@ -2110,24 +1751,11 @@
             // Remove typing indicator
             messagesContainer.removeChild(typingIndicator);
             
-            // Display bot response as HTML (rendered formatting) - single bubble for all content
+            // Display bot response with clickable links
             const botMessage = document.createElement('div');
             botMessage.className = 'chat-bubble bot-bubble';
-            
-            // Handle both array and single object responses - combine all into one message
-            let responseText = '';
-            if (Array.isArray(responseData)) {
-                // Combine all responses into a single message bubble
-                responseText = responseData.map(item => {
-                    const content = item.output || item || '';
-                    return typeof content === 'string' ? content : '';
-                }).filter(Boolean).join('');
-            } else {
-                responseText = responseData.output || responseData || '';
-            }
-            
-            // Render HTML directly from webhook response as a single bubble
-            botMessage.innerHTML = responseText;
+            const responseText = Array.isArray(responseData) ? responseData[0].output : responseData.output;
+            botMessage.innerHTML = linkifyText(responseText);
             messagesContainer.appendChild(botMessage);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
