@@ -265,6 +265,15 @@
             white-space: normal;
         }
 
+        /* Ensure first and last elements don't have extra spacing */
+        .chat-assist-widget .chat-bubble.bot-bubble > *:first-child {
+            margin-top: 0 !important;
+        }
+
+        .chat-assist-widget .chat-bubble.bot-bubble > *:last-child {
+            margin-bottom: 0 !important;
+        }
+
         /* Style HTML elements within bot bubbles for proper formatting */
         .chat-assist-widget .chat-bubble.bot-bubble h1,
         .chat-assist-widget .chat-bubble.bot-bubble h2,
@@ -272,7 +281,7 @@
         .chat-assist-widget .chat-bubble.bot-bubble h4,
         .chat-assist-widget .chat-bubble.bot-bubble h5,
         .chat-assist-widget .chat-bubble.bot-bubble h6 {
-            margin: 12px 0 8px 0;
+            margin: 0 0 6px 0;
             font-weight: 600;
             line-height: 1.4;
             color: var(--chat-color-text);
@@ -286,20 +295,38 @@
             font-size: 16px;
         }
 
+        .chat-assist-widget .chat-bubble.bot-bubble h1:first-child,
+        .chat-assist-widget .chat-bubble.bot-bubble h2:first-child,
+        .chat-assist-widget .chat-bubble.bot-bubble h3:first-child,
+        .chat-assist-widget .chat-bubble.bot-bubble h4:first-child,
+        .chat-assist-widget .chat-bubble.bot-bubble h5:first-child,
+        .chat-assist-widget .chat-bubble.bot-bubble h6:first-child {
+            margin-top: 0;
+        }
+
         .chat-assist-widget .chat-bubble.bot-bubble p {
-            margin: 8px 0;
+            margin: 0 0 8px 0;
             line-height: 1.6;
+        }
+
+        .chat-assist-widget .chat-bubble.bot-bubble p:last-child {
+            margin-bottom: 0;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble ul,
         .chat-assist-widget .chat-bubble.bot-bubble ol {
-            margin: 8px 0;
+            margin: 0 0 8px 0;
             padding-left: 24px;
             line-height: 1.6;
         }
 
+        .chat-assist-widget .chat-bubble.bot-bubble ul:last-child,
+        .chat-assist-widget .chat-bubble.bot-bubble ol:last-child {
+            margin-bottom: 0;
+        }
+
         .chat-assist-widget .chat-bubble.bot-bubble li {
-            margin: 4px 0;
+            margin: 2px 0;
             line-height: 1.6;
         }
 
@@ -329,16 +356,24 @@
             max-width: 100%;
             height: auto;
             border-radius: var(--chat-radius-sm);
-            margin: 8px 0;
+            margin: 0 0 8px 0;
+        }
+
+        .chat-assist-widget .chat-bubble.bot-bubble img:last-child {
+            margin-bottom: 0;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble table {
             width: 100%;
             border-collapse: collapse;
-            margin: 8px 0;
+            margin: 0 0 8px 0;
             font-size: 14px;
             overflow-x: auto;
             display: block;
+        }
+
+        .chat-assist-widget .chat-bubble.bot-bubble table:last-child {
+            margin-bottom: 0;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble table th,
@@ -348,11 +383,15 @@
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble blockquote {
-            margin: 8px 0;
+            margin: 0 0 8px 0;
             padding: 8px 12px;
             border-left: 3px solid var(--chat-color-primary);
             background: var(--chat-color-light);
             border-radius: var(--chat-radius-sm);
+        }
+
+        .chat-assist-widget .chat-bubble.bot-bubble blockquote:last-child {
+            margin-bottom: 0;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble code {
@@ -368,7 +407,11 @@
             padding: 12px;
             border-radius: var(--chat-radius-sm);
             overflow-x: auto;
-            margin: 8px 0;
+            margin: 0 0 8px 0;
+        }
+
+        .chat-assist-widget .chat-bubble.bot-bubble pre:last-child {
+            margin-bottom: 0;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble pre code {
@@ -866,9 +909,15 @@
             .chat-assist-widget .chat-bubble.bot-bubble h4,
             .chat-assist-widget .chat-bubble.bot-bubble h5,
             .chat-assist-widget .chat-bubble.bot-bubble h6 {
-                margin: 10px 0 6px 0;
+                margin: 0 0 5px 0;
                 font-size: 16px;
                 line-height: 1.3;
+            }
+
+            .chat-assist-widget .chat-bubble.bot-bubble h1:first-child,
+            .chat-assist-widget .chat-bubble.bot-bubble h2:first-child,
+            .chat-assist-widget .chat-bubble.bot-bubble h3:first-child {
+                margin-top: 0;
             }
 
             .chat-assist-widget .chat-bubble.bot-bubble h2 {
@@ -880,20 +929,29 @@
             }
 
             .chat-assist-widget .chat-bubble.bot-bubble p {
-                margin: 6px 0;
+                margin: 0 0 6px 0;
                 line-height: 1.5;
                 font-size: 13px;
             }
 
+            .chat-assist-widget .chat-bubble.bot-bubble p:last-child {
+                margin-bottom: 0;
+            }
+
             .chat-assist-widget .chat-bubble.bot-bubble ul,
             .chat-assist-widget .chat-bubble.bot-bubble ol {
-                margin: 6px 0;
+                margin: 0 0 6px 0;
                 padding-left: 20px;
                 line-height: 1.5;
             }
 
+            .chat-assist-widget .chat-bubble.bot-bubble ul:last-child,
+            .chat-assist-widget .chat-bubble.bot-bubble ol:last-child {
+                margin-bottom: 0;
+            }
+
             .chat-assist-widget .chat-bubble.bot-bubble li {
-                margin: 3px 0;
+                margin: 2px 0;
                 line-height: 1.5;
                 font-size: 13px;
             }
@@ -1048,8 +1106,14 @@
             .chat-assist-widget .chat-bubble.bot-bubble h1,
             .chat-assist-widget .chat-bubble.bot-bubble h2,
             .chat-assist-widget .chat-bubble.bot-bubble h3 {
-                margin: 8px 0 5px 0;
+                margin: 0 0 4px 0;
                 font-size: 15px;
+            }
+
+            .chat-assist-widget .chat-bubble.bot-bubble h1:first-child,
+            .chat-assist-widget .chat-bubble.bot-bubble h2:first-child,
+            .chat-assist-widget .chat-bubble.bot-bubble h3:first-child {
+                margin-top: 0;
             }
 
             .chat-assist-widget .chat-bubble.bot-bubble h2 {
@@ -1057,18 +1121,27 @@
             }
 
             .chat-assist-widget .chat-bubble.bot-bubble p {
-                margin: 5px 0;
+                margin: 0 0 5px 0;
                 font-size: 12px;
+            }
+
+            .chat-assist-widget .chat-bubble.bot-bubble p:last-child {
+                margin-bottom: 0;
             }
 
             .chat-assist-widget .chat-bubble.bot-bubble ul,
             .chat-assist-widget .chat-bubble.bot-bubble ol {
-                margin: 5px 0;
+                margin: 0 0 5px 0;
                 padding-left: 18px;
             }
 
+            .chat-assist-widget .chat-bubble.bot-bubble ul:last-child,
+            .chat-assist-widget .chat-bubble.bot-bubble ol:last-child {
+                margin-bottom: 0;
+            }
+
             .chat-assist-widget .chat-bubble.bot-bubble li {
-                margin: 2px 0;
+                margin: 1px 0;
                 font-size: 12px;
             }
 
