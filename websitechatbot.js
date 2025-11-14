@@ -244,7 +244,9 @@
             position: relative;
             white-space: pre-line;
             box-sizing: border-box;
+            overflow: visible;
             overflow-x: hidden;
+            overflow-y: visible;
         }
 
         .chat-assist-widget .chat-bubble.user-bubble {
@@ -263,6 +265,10 @@
             box-shadow: var(--chat-shadow-sm);
             border: 1px solid var(--chat-color-light);
             white-space: normal;
+            overflow: visible;
+            overflow-x: hidden;
+            overflow-y: visible;
+            max-height: none;
         }
 
         /* Ensure first and last elements don't have extra spacing */
@@ -282,6 +288,17 @@
         /* Add small spacing between consecutive block elements, but not at edges */
         .chat-assist-widget .chat-bubble.bot-bubble > * + * {
             margin-top: 8px;
+        }
+
+        /* Prevent any scrollbars inside chat bubbles - content should flow naturally */
+        .chat-assist-widget .chat-bubble * {
+            overflow-y: visible !important;
+            max-height: none !important;
+        }
+
+        /* Allow horizontal overflow control for images and tables */
+        .chat-assist-widget .chat-bubble img {
+            overflow: visible !important;
         }
 
         /* Style HTML elements within bot bubbles for proper formatting */
@@ -378,8 +395,9 @@
             border-collapse: collapse;
             margin: 0 0 8px 0;
             font-size: 14px;
-            overflow-x: auto;
-            display: block;
+            overflow: visible;
+            overflow-x: hidden;
+            display: table;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble table:last-child {
@@ -416,8 +434,12 @@
             background: var(--chat-color-light);
             padding: 12px;
             border-radius: var(--chat-radius-sm);
-            overflow-x: auto;
+            overflow: visible;
+            overflow-x: hidden;
+            overflow-y: visible;
             margin: 0 0 8px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .chat-assist-widget .chat-bubble.bot-bubble pre:last-child {
