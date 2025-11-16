@@ -1477,7 +1477,7 @@
             
             // Load session with timeout and better error handling
             const sessionController = new AbortController();
-            const sessionTimeout = setTimeout(() => sessionController.abort(), 30000); // 30 second timeout
+            const sessionTimeout = setTimeout(() => sessionController.abort(), 120000); // 120 second timeout for long processing
             
             let sessionResponse;
             try {
@@ -1496,7 +1496,7 @@
             } catch (fetchError) {
                 clearTimeout(sessionTimeout);
                 if (fetchError.name === 'AbortError') {
-                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                    throw new Error('Request timed out after 2 minutes. The server is taking longer than expected. Please try again later.');
                 }
                 throw fetchError;
             }
@@ -1529,7 +1529,7 @@
             
             // Send user info with timeout and better error handling
             const userInfoController = new AbortController();
-            const userInfoTimeout = setTimeout(() => userInfoController.abort(), 30000); // 30 second timeout
+            const userInfoTimeout = setTimeout(() => userInfoController.abort(), 120000); // 120 second timeout for long processing
             
             let userInfoResponse;
             try {
@@ -1548,7 +1548,7 @@
             } catch (fetchError) {
                 clearTimeout(userInfoTimeout);
                 if (fetchError.name === 'AbortError') {
-                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                    throw new Error('Request timed out after 2 minutes. The server is taking longer than expected. Please try again later.');
                 }
                 throw fetchError;
             }
@@ -1620,8 +1620,10 @@
             const errorMessage = document.createElement('div');
             errorMessage.className = 'chat-bubble bot-bubble';
             let errorText = "Sorry, I couldn't connect to the server. Please try again later.";
-            if (error.message && error.message.includes('timeout')) {
-                errorText = "Request timed out. Please check your internet connection and try again.";
+            // Check both error message and error name for timeout detection
+            const isTimeout = error.name === 'AbortError' || (error.message && error.message.toLowerCase().includes('timeout'));
+            if (isTimeout) {
+                errorText = "Request timed out after 2 minutes. The server is taking longer than expected. Please try again later.";
             } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed'))) {
                 errorText = "Network error. Please check your internet connection. If the problem persists, the server may be blocking requests from your network.";
             } else if (error.message && (error.message.includes('CORS') || error.message.includes('cross-origin'))) {
@@ -1716,7 +1718,7 @@
         try {
             // Add timeout and better error handling
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            const timeout = setTimeout(() => controller.abort(), 120000); // 120 second timeout for long processing
             
             let response;
             try {
@@ -1735,7 +1737,7 @@
             } catch (fetchError) {
                 clearTimeout(timeout);
                 if (fetchError.name === 'AbortError') {
-                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                    throw new Error('Request timed out after 2 minutes. Your question may be too complex or the server is taking longer than expected. Please try rephrasing your question or try again later.');
                 }
                 throw fetchError;
             }
@@ -1774,8 +1776,10 @@
             const errorMessage = document.createElement('div');
             errorMessage.className = 'chat-bubble bot-bubble';
             let errorText = "Sorry, I couldn't send your message. Please try again.";
-            if (error.message && error.message.includes('timeout')) {
-                errorText = "Request timed out. Please check your internet connection and try again.";
+            // Check both error message and error name for timeout detection
+            const isTimeout = error.name === 'AbortError' || (error.message && error.message.toLowerCase().includes('timeout'));
+            if (isTimeout) {
+                errorText = "Request timed out after 2 minutes. Your question may be too complex or the server is taking longer than expected. Please try rephrasing your question or try again later.";
             } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed'))) {
                 errorText = "Network error. Please check your internet connection. If the problem persists, the server may be blocking requests from your network.";
             } else if (error.message && (error.message.includes('CORS') || error.message.includes('cross-origin'))) {
