@@ -30,6 +30,7 @@
             --chat-radius-lg: 20px;
             --chat-radius-full: 9999px;
             --chat-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --chat-viewport-offset: 0px;
             font-family: 'Poppins', sans-serif;
         }
 
@@ -51,7 +52,7 @@
             overscroll-behavior: contain;
             transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 0;
-            transform: translateY(20px) scale(0.95);
+            transform: translateY(calc(20px + var(--chat-viewport-offset, 0px))) scale(0.95);
         }
 
         .chat-assist-widget .chat-window.right-side {
@@ -67,7 +68,7 @@
         .chat-assist-widget .chat-window.visible {
             display: flex;
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(var(--chat-viewport-offset, 0px)) scale(1);
         }
 
         .chat-assist-widget .chat-header {
@@ -1077,20 +1078,18 @@
     
     // Fix mobile viewport height issue (for mobile browsers with dynamic viewport)
     function setViewportHeight() {
-        const visualVp = window.visualViewport?.height || 0;
-        const base = Math.max(window.innerHeight, visualVp);
-        const vh = base * 0.01;
+        const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const vh = viewportHeight * 0.01;
         document.documentElement.style.setProperty('--vh', vh + 'px');
         if (chatWindow.classList.contains('visible')) adjustChatWindowPosition();
+        syncVisualViewportOffset();
     }
     
     // Adjust chat window position based on viewport
     function adjustChatWindowPosition() {
         const isMobile = isMobileView();
         if (isMobile) {
-            // On mobile, ensure window is at bottom and full height
-            chatWindow.style.top = '0';
-            chatWindow.style.bottom = '0';
+            // On mobile, ensure window is full height (offsets are applied separately)
             chatWindow.style.height = '100%';
             chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
         } else {
@@ -1147,6 +1146,25 @@
     }
     function resetVisualViewportAlignment() {
         // No-op: we rely on CSS using --vh, nothing to reset on the element
+    }
+
+    // Keep the widget anchored to the visible viewport (Safari/iOS keyboard fixes)
+    function syncVisualViewportOffset() {
+        if (!isMobileView() || !window.visualViewport) {
+            widgetRoot.style.setProperty('--chat-viewport-offset', '0px');
+            chatWindow.style.top = '';
+            chatWindow.style.bottom = '';
+            return;
+        }
+        const offsetTop = Math.max(0, window.visualViewport.offsetTop || 0);
+        const offsetBottom = Math.max(0, window.innerHeight - (window.visualViewport.height + offsetTop));
+        widgetRoot.style.setProperty('--chat-viewport-offset', `${offsetTop}px`);
+        if (chatWindow.classList.contains('visible')) {
+            chatWindow.style.top = `${offsetTop}px`;
+            chatWindow.style.bottom = `${offsetBottom}px`;
+            chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
+            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
+        }
     }
     
     // Precisely size the messages area to fill the space between header and controls
@@ -1233,6 +1251,7 @@
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', handleResize);
         window.visualViewport.addEventListener('scroll', () => {
+            syncVisualViewportOffset();
             // Prevent unwanted scrolling when keyboard appears
             if (isMobileView() && window.visualViewport.height < window.innerHeight) {
                 // Keyboard is likely visible
@@ -1254,6 +1273,7 @@
         });
         // Also realign on resize events generally
         window.visualViewport.addEventListener('resize', () => {
+            syncVisualViewportOffset();
             if (keyboardVisible && isMobileView()) {
                 updateKeyboardOverlapPadding();
             }
