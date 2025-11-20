@@ -767,7 +767,7 @@
             .chat-assist-widget .user-registration {
                 padding: 16px 12px;
                 max-width: 100%;
-                max-height: calc(100 * var(--vh, 1vh) - 72px);
+                max-height: calc(100dvh - 72px);
             }
 
             .chat-assist-widget .registration-title {
@@ -857,8 +857,8 @@
         /* Landscape orientation on mobile */
         @media screen and (max-height: 500px) and (orientation: landscape) {
             .chat-assist-widget .chat-window {
-                max-height: calc(100 * var(--vh, 1vh));
-                height: calc(100 * var(--vh, 1vh));
+                max-height: 100dvh;
+                height: 100dvh;
                 bottom: 0;
             }
             
@@ -953,9 +953,10 @@
     function setupIOSChatViewportHeight(rootElement) {
         if (!rootElement || !isIOS || iosViewportListenersBound) return;
         const updateHeight = () => {
-            const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            const viewportHeight = getVisualViewportHeight();
             rootElement.style.height = viewportHeight + 'px';
             rootElement.style.maxHeight = viewportHeight + 'px';
+            resizeMessagesArea();
         };
         updateHeight();
         if (window.visualViewport) {
@@ -1067,25 +1068,25 @@
 
     // View helpers
     const isMobileView = () => window.innerWidth <= 480;
+    const getVisualViewportHeight = () => window.visualViewport ? window.visualViewport.height : window.innerHeight;
     
     // Fix mobile viewport height issue (for mobile browsers with dynamic viewport)
     function setViewportHeight() {
-        const visualVp = window.visualViewport?.height || 0;
-        const base = Math.max(window.innerHeight, visualVp);
+        const base = getVisualViewportHeight();
         const vh = base * 0.01;
         document.documentElement.style.setProperty('--vh', vh + 'px');
-        if (chatWindow.classList.contains('visible')) adjustChatWindowPosition();
+        if (chatWindow.classList.contains('visible')) adjustChatWindowPosition(base);
     }
     
     // Adjust chat window position based on viewport
-    function adjustChatWindowPosition() {
+    function adjustChatWindowPosition(viewportPx) {
         const isMobile = isMobileView();
         if (isMobile) {
-            // On mobile, ensure window is at bottom and full height
+            const targetHeight = viewportPx || getVisualViewportHeight();
             chatWindow.style.top = '0';
             chatWindow.style.bottom = '0';
-            chatWindow.style.height = '100%';
-            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
+            chatWindow.style.height = targetHeight + 'px';
+            chatWindow.style.maxHeight = targetHeight + 'px';
         } else {
             // On desktop, maintain original CSS positioning
             chatWindow.style.bottom = '';
@@ -1265,9 +1266,10 @@
         // Small delay to let keyboard appear
         focusTimeout = setTimeout(() => {
             // Use current visual viewport height so layout matches available space above keyboard
+            const targetHeight = getVisualViewportHeight();
             setViewportHeight();
-            chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
-            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
+            chatWindow.style.height = targetHeight + 'px';
+            chatWindow.style.maxHeight = targetHeight + 'px';
             // Ensure the messages area exactly fits the remaining space
             resizeMessagesArea();
             updateKeyboardOverlapPadding();
@@ -1287,8 +1289,6 @@
         // Delay to ensure keyboard is fully closed
         blurTimeout = setTimeout(() => {
             // Restore responsive height after keyboard hides
-            chatWindow.style.height = '100%';
-            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             setViewportHeight();
             adjustChatWindowPosition();
             resizeMessagesArea();
