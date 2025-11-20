@@ -950,7 +950,6 @@
 
     // iOS-only viewport alignment helper
     let iosViewportListenersBound = false;
-    let iosViewportRaf = 0;
     function setupIOSChatViewportHeight(rootElement) {
         if (!rootElement || !isIOS || iosViewportListenersBound) return;
         const updateHeight = () => {
@@ -962,27 +961,10 @@
             rootElement.style.top = offsetTop + 'px';
             rootElement.style.bottom = 'auto';
         };
-        const scheduleRafUpdates = () => {
-            cancelAnimationFrame(iosViewportRaf);
-            const start = performance.now();
-            const loop = () => {
-                updateHeight();
-                if (performance.now() - start < 500) {
-                    iosViewportRaf = requestAnimationFrame(loop);
-                }
-            };
-            iosViewportRaf = requestAnimationFrame(loop);
-        };
         updateHeight();
         if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', () => {
-                updateHeight();
-                scheduleRafUpdates();
-            });
-            window.visualViewport.addEventListener('scroll', () => {
-                updateHeight();
-                scheduleRafUpdates();
-            });
+            window.visualViewport.addEventListener('resize', updateHeight);
+            window.visualViewport.addEventListener('scroll', updateHeight);
         } else {
             window.addEventListener('resize', updateHeight);
         }
