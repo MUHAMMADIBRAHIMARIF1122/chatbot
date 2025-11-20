@@ -36,7 +36,7 @@
         .chat-assist-widget .chat-window {
             position: fixed;
             bottom: 90px;
-            z-index: 100000;
+            z-index: 2147483000;
             width: 380px;
             max-width: calc(100vw - 20px);
             height: min(580px, 100dvh);
@@ -392,7 +392,7 @@
 
         .chat-assist-widget .chat-launcher {
             position: fixed;
-            bottom: 20px;
+            bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
             height: 56px;
             min-height: 56px;
             border-radius: var(--chat-radius-full);
@@ -401,7 +401,7 @@
             border: none;
             cursor: pointer;
             box-shadow: var(--chat-shadow-md);
-            z-index: 999;
+            z-index: 2147483000;
             transition: var(--chat-transition);
             display: flex;
             align-items: center;
@@ -413,12 +413,12 @@
         }
 
         .chat-assist-widget .chat-launcher.right-side {
-            right: 20px;
+            right: calc(env(safe-area-inset-right, 0px) + 20px);
             left: auto;
         }
 
         .chat-assist-widget .chat-launcher.left-side {
-            left: 20px;
+            left: calc(env(safe-area-inset-left, 0px) + 20px);
             right: auto;
         }
 
@@ -708,8 +708,8 @@
             }
 
             .chat-assist-widget .chat-launcher {
-                bottom: 16px;
-                right: 16px !important;
+                bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+                right: calc(env(safe-area-inset-right, 0px) + 16px) !important;
                 left: auto !important;
                 max-width: calc(100vw - 32px);
                 padding: 0 14px 0 10px;
@@ -717,7 +717,7 @@
 
             .chat-assist-widget .chat-launcher.right-side,
             .chat-assist-widget .chat-launcher.left-side {
-                right: 16px;
+                right: calc(env(safe-area-inset-right, 0px) + 16px);
                 left: auto;
             }
 
