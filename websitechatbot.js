@@ -1074,6 +1074,7 @@
     
     // Fix mobile viewport height issue (for mobile browsers with dynamic viewport)
     function setViewportHeight() {
+        if (isIOS) return;
         const visualVp = window.visualViewport?.height || 0;
         const base = Math.max(window.innerHeight, visualVp);
         const vh = base * 0.01;
@@ -1083,6 +1084,7 @@
     
     // Adjust chat window position based on viewport
     function adjustChatWindowPosition() {
+        if (isIOS) return;
         const isMobile = isMobileView();
         if (isMobile) {
             // On mobile, ensure window is at bottom and full height
@@ -1259,6 +1261,11 @@
     
     function handleTextareaFocus() {
         if (!isMobileView()) return;
+        if (isIOS) {
+            keyboardVisible = true;
+            startKeyboardAnchorLoop();
+            return;
+        }
         keyboardVisible = true;
         lastViewportHeight = window.innerHeight;
         // Capture the initial viewport height once per open to keep overlay full-screen
@@ -1286,6 +1293,15 @@
     
     function handleTextareaBlur() {
         if (!isMobileView()) return;
+        if (isIOS) {
+            keyboardVisible = false;
+            stopKeyboardAnchorLoop();
+            const controlsEl = chatWindow.querySelector('.chat-controls');
+            const messagesEl = chatWindow.querySelector('.chat-messages');
+            if (controlsEl) controlsEl.style.bottom = '';
+            if (messagesEl) messagesEl.style.paddingBottom = '';
+            return;
+        }
         keyboardVisible = false;
         clearTimeout(focusTimeout);
         // Delay to ensure keyboard is fully closed
