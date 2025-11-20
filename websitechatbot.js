@@ -432,6 +432,43 @@
             height: 24px;
         }
         
+        .chat-assist-widget .chat-launcher-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: var(--chat-radius-full);
+            padding: 2px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .chat-assist-widget .chat-launcher-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .chat-assist-widget .chat-launcher-fallback {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--chat-color-primary);
+            display: none;
+            line-height: 1;
+        }
+
+        .chat-assist-widget .chat-launcher-icon.fallback img {
+            display: none;
+        }
+
+        .chat-assist-widget .chat-launcher-icon.fallback .chat-launcher-fallback {
+            display: flex;
+        }
+
         .chat-assist-widget .chat-launcher-text {
             font-weight: 600;
             font-size: 14px;
@@ -1057,9 +1094,48 @@
     // Create toggle button
     const launchButton = document.createElement('button');
     launchButton.className = `chat-launcher ${settings.style.position === 'left' ? 'left-side' : 'right-side'}`;
-    launchButton.innerHTML = `
-        <img src="${launcherLogoUrl}" alt="${settings.branding.name} Logo" onerror="this.style.display='none';" style="width: 32px; height: 32px; object-fit: contain; background: white; border-radius: var(--chat-radius-full); padding: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.07);">
-        <span class="chat-launcher-text">Speak with team ${settings.branding.name}</span>`;
+
+    const launcherIcon = document.createElement('div');
+    launcherIcon.className = 'chat-launcher-icon';
+    launcherIcon.setAttribute('aria-hidden', 'true');
+
+    const launcherImg = document.createElement('img');
+    launcherImg.src = launcherLogoUrl || headerLogoUrl || '';
+    launcherImg.alt = `${settings.branding.name} Logo`;
+    launcherImg.loading = 'lazy';
+    launcherImg.decoding = 'async';
+    launcherImg.referrerPolicy = 'no-referrer';
+
+    const fallbackInitial = ((settings.branding.name || 'Chat').trim().charAt(0) || 'C').toUpperCase();
+    const launcherFallback = document.createElement('span');
+    launcherFallback.className = 'chat-launcher-fallback';
+    launcherFallback.textContent = fallbackInitial;
+
+    const activateFallback = () => launcherIcon.classList.add('fallback');
+    const clearFallback = () => launcherIcon.classList.remove('fallback');
+
+    launcherImg.addEventListener('error', activateFallback);
+    launcherImg.addEventListener('load', () => {
+        if (!launcherImg.naturalWidth || !launcherImg.naturalHeight) {
+            activateFallback();
+        } else {
+            clearFallback();
+        }
+    });
+
+    if (!launcherLogoUrl && !headerLogoUrl) {
+        activateFallback();
+    }
+
+    launcherIcon.appendChild(launcherImg);
+    launcherIcon.appendChild(launcherFallback);
+
+    const launcherText = document.createElement('span');
+    launcherText.className = 'chat-launcher-text';
+    launcherText.textContent = `Speak with team ${settings.branding.name}`;
+
+    launchButton.appendChild(launcherIcon);
+    launchButton.appendChild(launcherText);
     
     // Add elements to DOM
     widgetRoot.appendChild(chatWindow);
