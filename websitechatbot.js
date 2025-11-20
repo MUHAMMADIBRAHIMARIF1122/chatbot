@@ -30,17 +30,18 @@
             --chat-radius-lg: 20px;
             --chat-radius-full: 9999px;
             --chat-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --chat-viewport-offset: 0px;
             font-family: 'Poppins', sans-serif;
         }
 
         .chat-assist-widget .chat-window {
             position: fixed;
             bottom: 90px;
-            z-index: 2147483000;
+            z-index: 100000;
             width: 380px;
             max-width: calc(100vw - 20px);
-            height: min(580px, 100dvh);
-            max-height: 100dvh;
+            height: 580px;
+            max-height: calc(100vh - 110px);
             background: var(--chat-color-surface);
             border-radius: var(--chat-radius-lg);
             box-shadow: var(--chat-shadow-lg);
@@ -51,7 +52,7 @@
             overscroll-behavior: contain;
             transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 0;
-            transform: translateY(20px) scale(0.95);
+            transform: translateY(calc(20px + var(--chat-viewport-offset, 0px))) scale(0.95);
         }
 
         .chat-assist-widget .chat-window.right-side {
@@ -67,7 +68,7 @@
         .chat-assist-widget .chat-window.visible {
             display: flex;
             opacity: 1;
-            transform: translateY(0) scale(1);
+            transform: translateY(var(--chat-viewport-offset, 0px)) scale(1);
         }
 
         .chat-assist-widget .chat-header {
@@ -199,16 +200,14 @@
             min-height: 0;
             position: relative;
             overflow: hidden;
-            flex: 1 1 auto;
         }
 
         .chat-assist-widget .chat-body.active {
             display: flex !important;
-            min-height: 0;
         }
 
         .chat-assist-widget .chat-messages {
-            flex: 1 1 auto;
+            flex: 1 1 0;
             overflow-y: auto;
             overflow-x: hidden;
             padding: 16px 12px;
@@ -319,9 +318,6 @@
             flex-shrink: 0;
             z-index: 10;
             padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-            flex: 0 0 auto;
-            position: sticky;
-            bottom: 0;
         }
 
         .chat-assist-widget .chat-textarea {
@@ -392,7 +388,7 @@
 
         .chat-assist-widget .chat-launcher {
             position: fixed;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+            bottom: 20px;
             height: 56px;
             min-height: 56px;
             border-radius: var(--chat-radius-full);
@@ -401,7 +397,7 @@
             border: none;
             cursor: pointer;
             box-shadow: var(--chat-shadow-md);
-            z-index: 2147483000;
+            z-index: 999;
             transition: var(--chat-transition);
             display: flex;
             align-items: center;
@@ -413,12 +409,12 @@
         }
 
         .chat-assist-widget .chat-launcher.right-side {
-            right: calc(env(safe-area-inset-right, 0px) + 20px);
+            right: 20px;
             left: auto;
         }
 
         .chat-assist-widget .chat-launcher.left-side {
-            left: calc(env(safe-area-inset-left, 0px) + 20px);
+            left: 20px;
             right: auto;
         }
 
@@ -432,43 +428,6 @@
             height: 24px;
         }
         
-        .chat-assist-widget .chat-launcher-icon {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-            border-radius: var(--chat-radius-full);
-            padding: 2px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-
-        .chat-assist-widget .chat-launcher-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-
-        .chat-assist-widget .chat-launcher-fallback {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--chat-color-primary);
-            display: none;
-            line-height: 1;
-        }
-
-        .chat-assist-widget .chat-launcher-icon.fallback img {
-            display: none;
-        }
-
-        .chat-assist-widget .chat-launcher-icon.fallback .chat-launcher-fallback {
-            display: flex;
-        }
-
         .chat-assist-widget .chat-launcher-text {
             font-weight: 600;
             font-size: 14px;
@@ -675,8 +634,8 @@
             .chat-assist-widget .chat-window {
                 width: 100%;
                 max-width: 100vw;
-                height: 100dvh;
-                max-height: 100dvh;
+                height: calc(100 * var(--vh, 1vh));
+                max-height: calc(100 * var(--vh, 1vh));
                 top: 0;
                 bottom: 0;
                 left: 0 !important;
@@ -687,6 +646,15 @@
                 border-bottom: none;
             }
             
+            /* Prefer dynamic viewport on modern browsers to avoid iOS shrink issues */
+            @supports (height: 100dvh) {
+                .chat-assist-widget .chat-window {
+                    height: 100dvh;
+                    max-height: 100dvh;
+                }
+            }
+            
+            /* iOS-specific hardening */
             .chat-assist-widget.ios .chat-window {
                 position: fixed;
                 inset: 0;
@@ -694,7 +662,30 @@
                 max-height: 100dvh;
                 background: var(--chat-color-surface);
             }
+            @supports (-webkit-touch-callout: none) {
+                .chat-assist-widget.ios .chat-window {
+                    height: -webkit-fill-available;
+                    max-height: -webkit-fill-available;
+                }
+            }
             
+            .chat-assist-widget .chat-controls {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+                background: var(--chat-color-surface);
+            }
+            .chat-assist-widget.ios .chat-controls {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 100002;
+                background: var(--chat-color-surface);
+            }
+
             .chat-assist-widget .chat-window.right-side,
             .chat-assist-widget .chat-window.left-side {
                 left: 0;
@@ -708,8 +699,8 @@
             }
 
             .chat-assist-widget .chat-launcher {
-                bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
-                right: calc(env(safe-area-inset-right, 0px) + 16px) !important;
+                bottom: 16px;
+                right: 16px !important;
                 left: auto !important;
                 max-width: calc(100vw - 32px);
                 padding: 0 14px 0 10px;
@@ -717,7 +708,7 @@
 
             .chat-assist-widget .chat-launcher.right-side,
             .chat-assist-widget .chat-launcher.left-side {
-                right: calc(env(safe-area-inset-right, 0px) + 16px);
+                right: 16px;
                 left: auto;
             }
 
@@ -775,7 +766,7 @@
 
             .chat-assist-widget .chat-messages {
                 min-height: 0;
-                flex: 1 1 auto;
+                flex: 1 1 0;
                 overflow-y: auto;
             }
 
@@ -804,7 +795,7 @@
             .chat-assist-widget .user-registration {
                 padding: 16px 12px;
                 max-width: 100%;
-                max-height: calc(100dvh - 72px);
+                max-height: calc(100 * var(--vh, 1vh) - 72px);
             }
 
             .chat-assist-widget .registration-title {
@@ -894,8 +885,8 @@
         /* Landscape orientation on mobile */
         @media screen and (max-height: 500px) and (orientation: landscape) {
             .chat-assist-widget .chat-window {
-                max-height: 100dvh;
-                height: 100dvh;
+                max-height: calc(100 * var(--vh, 1vh));
+                height: calc(100 * var(--vh, 1vh));
                 bottom: 0;
             }
             
@@ -984,26 +975,6 @@
     if (isIOS) {
         widgetRoot.classList.add('ios');
     }
-
-    // iOS-only viewport alignment helper
-    let iosViewportListenersBound = false;
-    function setupIOSChatViewportHeight(rootElement) {
-        if (!rootElement || !isIOS || iosViewportListenersBound) return;
-        const updateHeight = () => {
-            const viewportHeight = getVisualViewportHeight();
-            rootElement.style.height = viewportHeight + 'px';
-            rootElement.style.maxHeight = viewportHeight + 'px';
-            resizeMessagesArea();
-        };
-        updateHeight();
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', updateHeight);
-            window.visualViewport.addEventListener('scroll', updateHeight);
-        } else {
-            window.addEventListener('resize', updateHeight);
-        }
-        iosViewportListenersBound = true;
-    }
     
     // Apply custom colors
     widgetRoot.style.setProperty('--chat-widget-primary', settings.style.primaryColor);
@@ -1015,7 +986,6 @@
     // Create chat panel
     const chatWindow = document.createElement('div');
     chatWindow.className = `chat-window ${settings.style.position === 'left' ? 'left-side' : 'right-side'}`;
-    setupIOSChatViewportHeight(chatWindow);
     
     // Create welcome screen with header
     const headerLogoUrl = settings.branding.logo || '';
@@ -1094,48 +1064,9 @@
     // Create toggle button
     const launchButton = document.createElement('button');
     launchButton.className = `chat-launcher ${settings.style.position === 'left' ? 'left-side' : 'right-side'}`;
-
-    const launcherIcon = document.createElement('div');
-    launcherIcon.className = 'chat-launcher-icon';
-    launcherIcon.setAttribute('aria-hidden', 'true');
-
-    const launcherImg = document.createElement('img');
-    launcherImg.src = launcherLogoUrl || headerLogoUrl || '';
-    launcherImg.alt = `${settings.branding.name} Logo`;
-    launcherImg.loading = 'lazy';
-    launcherImg.decoding = 'async';
-    launcherImg.referrerPolicy = 'no-referrer';
-
-    const fallbackInitial = ((settings.branding.name || 'Chat').trim().charAt(0) || 'C').toUpperCase();
-    const launcherFallback = document.createElement('span');
-    launcherFallback.className = 'chat-launcher-fallback';
-    launcherFallback.textContent = fallbackInitial;
-
-    const activateFallback = () => launcherIcon.classList.add('fallback');
-    const clearFallback = () => launcherIcon.classList.remove('fallback');
-
-    launcherImg.addEventListener('error', activateFallback);
-    launcherImg.addEventListener('load', () => {
-        if (!launcherImg.naturalWidth || !launcherImg.naturalHeight) {
-            activateFallback();
-        } else {
-            clearFallback();
-        }
-    });
-
-    if (!launcherLogoUrl && !headerLogoUrl) {
-        activateFallback();
-    }
-
-    launcherIcon.appendChild(launcherImg);
-    launcherIcon.appendChild(launcherFallback);
-
-    const launcherText = document.createElement('span');
-    launcherText.className = 'chat-launcher-text';
-    launcherText.textContent = `Speak with team ${settings.branding.name}`;
-
-    launchButton.appendChild(launcherIcon);
-    launchButton.appendChild(launcherText);
+    launchButton.innerHTML = `
+        <img src="${launcherLogoUrl}" alt="${settings.branding.name} Logo" onerror="this.style.display='none';" style="width: 32px; height: 32px; object-fit: contain; background: white; border-radius: var(--chat-radius-full); padding: 2px; box-shadow: 0 2px 6px rgba(0,0,0,0.07);">
+        <span class="chat-launcher-text">Speak with team ${settings.branding.name}</span>`;
     
     // Add elements to DOM
     widgetRoot.appendChild(chatWindow);
@@ -1144,25 +1075,23 @@
 
     // View helpers
     const isMobileView = () => window.innerWidth <= 480;
-    const getVisualViewportHeight = () => window.visualViewport ? window.visualViewport.height : window.innerHeight;
     
     // Fix mobile viewport height issue (for mobile browsers with dynamic viewport)
     function setViewportHeight() {
-        const base = getVisualViewportHeight();
-        const vh = base * 0.01;
+        const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const vh = viewportHeight * 0.01;
         document.documentElement.style.setProperty('--vh', vh + 'px');
-        if (chatWindow.classList.contains('visible')) adjustChatWindowPosition(base);
+        if (chatWindow.classList.contains('visible')) adjustChatWindowPosition();
+        syncVisualViewportOffset();
     }
     
     // Adjust chat window position based on viewport
-    function adjustChatWindowPosition(viewportPx) {
+    function adjustChatWindowPosition() {
         const isMobile = isMobileView();
         if (isMobile) {
-            const targetHeight = viewportPx || getVisualViewportHeight();
-            chatWindow.style.top = '0';
-            chatWindow.style.bottom = '0';
-            chatWindow.style.height = targetHeight + 'px';
-            chatWindow.style.maxHeight = targetHeight + 'px';
+            // On mobile, ensure window is full height (offsets are applied separately)
+            chatWindow.style.height = '100%';
+            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
         } else {
             // On desktop, maintain original CSS positioning
             chatWindow.style.bottom = '';
@@ -1217,6 +1146,25 @@
     }
     function resetVisualViewportAlignment() {
         // No-op: we rely on CSS using --vh, nothing to reset on the element
+    }
+
+    // Keep the widget anchored to the visible viewport (Safari/iOS keyboard fixes)
+    function syncVisualViewportOffset() {
+        if (!isMobileView() || !window.visualViewport) {
+            widgetRoot.style.setProperty('--chat-viewport-offset', '0px');
+            chatWindow.style.top = '';
+            chatWindow.style.bottom = '';
+            return;
+        }
+        const offsetTop = Math.max(0, window.visualViewport.offsetTop || 0);
+        const offsetBottom = Math.max(0, window.innerHeight - (window.visualViewport.height + offsetTop));
+        widgetRoot.style.setProperty('--chat-viewport-offset', `${offsetTop}px`);
+        if (chatWindow.classList.contains('visible')) {
+            chatWindow.style.top = `${offsetTop}px`;
+            chatWindow.style.bottom = `${offsetBottom}px`;
+            chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
+            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
+        }
     }
     
     // Precisely size the messages area to fill the space between header and controls
@@ -1303,6 +1251,7 @@
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', handleResize);
         window.visualViewport.addEventListener('scroll', () => {
+            syncVisualViewportOffset();
             // Prevent unwanted scrolling when keyboard appears
             if (isMobileView() && window.visualViewport.height < window.innerHeight) {
                 // Keyboard is likely visible
@@ -1324,6 +1273,7 @@
         });
         // Also realign on resize events generally
         window.visualViewport.addEventListener('resize', () => {
+            syncVisualViewportOffset();
             if (keyboardVisible && isMobileView()) {
                 updateKeyboardOverlapPadding();
             }
@@ -1342,10 +1292,9 @@
         // Small delay to let keyboard appear
         focusTimeout = setTimeout(() => {
             // Use current visual viewport height so layout matches available space above keyboard
-            const targetHeight = getVisualViewportHeight();
             setViewportHeight();
-            chatWindow.style.height = targetHeight + 'px';
-            chatWindow.style.maxHeight = targetHeight + 'px';
+            chatWindow.style.height = 'calc(100 * var(--vh, 1vh))';
+            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             // Ensure the messages area exactly fits the remaining space
             resizeMessagesArea();
             updateKeyboardOverlapPadding();
@@ -1365,6 +1314,8 @@
         // Delay to ensure keyboard is fully closed
         blurTimeout = setTimeout(() => {
             // Restore responsive height after keyboard hides
+            chatWindow.style.height = '100%';
+            chatWindow.style.maxHeight = 'calc(100 * var(--vh, 1vh))';
             setViewportHeight();
             adjustChatWindowPosition();
             resizeMessagesArea();
