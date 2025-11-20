@@ -52,6 +52,7 @@
             transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 0;
             transform: translateY(20px) scale(0.95);
+            will-change: transform;
         }
 
         .chat-assist-widget .chat-window.right-side {
@@ -950,6 +951,7 @@
 
     // iOS-only viewport alignment helper
     let iosViewportListenersBound = false;
+    let iosViewportRaf = 0;
     function setupIOSChatViewportHeight(rootElement) {
         if (!rootElement || !isIOS || iosViewportListenersBound) return;
         const updateHeight = () => {
@@ -958,13 +960,31 @@
             const offsetTop = vv ? vv.offsetTop : 0;
             rootElement.style.height = viewportHeight + 'px';
             rootElement.style.maxHeight = viewportHeight + 'px';
-            rootElement.style.top = offsetTop + 'px';
+            rootElement.style.top = '0';
             rootElement.style.bottom = 'auto';
+            rootElement.style.transform = `translate3d(0, ${offsetTop}px, 0)`;
+        };
+        const scheduleRafUpdates = () => {
+            cancelAnimationFrame(iosViewportRaf);
+            const start = performance.now();
+            const loop = () => {
+                updateHeight();
+                if (performance.now() - start < 500) {
+                    iosViewportRaf = requestAnimationFrame(loop);
+                }
+            };
+            iosViewportRaf = requestAnimationFrame(loop);
         };
         updateHeight();
         if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', updateHeight);
-            window.visualViewport.addEventListener('scroll', updateHeight);
+            window.visualViewport.addEventListener('resize', () => {
+                updateHeight();
+                scheduleRafUpdates();
+            });
+            window.visualViewport.addEventListener('scroll', () => {
+                updateHeight();
+                scheduleRafUpdates();
+            });
         } else {
             window.addEventListener('resize', updateHeight);
         }
